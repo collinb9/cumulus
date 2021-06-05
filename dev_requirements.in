@@ -1,0 +1,5 @@
+cfn-lint==0.50.0
+pydot==1.4.2
+taskcat==0.9.23
+troposphere==2.7.1
+cloudformation-cli==0.2.12

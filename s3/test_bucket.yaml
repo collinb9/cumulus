@@ -1,0 +1,11 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: S3 Bucket with custom name
+Resources:
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: Private
+      BucketName: !Sub
+        - ${aws_region}-${account_id}-test
+        - aws_region: !Ref 'AWS::Region'
+          account_id: !Ref 'AWS::AccountId'

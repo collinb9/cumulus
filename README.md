@@ -1,0 +1,3 @@
+# Cumulus
+
+Cloudformation configuration
