@@ -5,4 +5,4 @@ unzip awscliv2.zip
 sudo ./aws/install
 aws --version
 
-python -m pip install dev_requirements.txt
+python -m pip install -r dev_requirements.txt
