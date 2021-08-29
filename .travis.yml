@@ -12,6 +12,7 @@ env:
 stages:
   - test
   - staging
+  # - bastion
   - prod
 
 jobs:
@@ -24,6 +25,13 @@ jobs:
     script:
       - ci/find_changed_templates.sh
       - ci/cfn_lint.sh
+
+  # - name: DeployBastion
+  #   stage: bastion
+  #   env: ENVIRONMENT="bastion"
+  #   if: branch = staging
+  #   script:
+  #     - echo "Bastion deploy step"
 
   - name: DeployStaging
     stage: staging
@@ -43,4 +51,5 @@ jobs:
       # - python ci/apply_sam_workflow.py
 
 install:
+  - chmod +x ci/*
   - ci/install_dependencies.sh
