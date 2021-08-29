@@ -1,0 +1,46 @@
+os: linux
+dist: xenial
+language: python
+cache: pip
+python: 3.8
+env:
+  global:
+  # AWS access key and secret
+  - secure: Y1DwZQ3y3SIFJodc+xO1hzsM0QZsB/8uRJ2ES3yQjYZcnWJjSQo7NhxwZT6SnE6hxvjM52BNBSFu33JnJ0BNFYejJdQbbY9s7wzt0KleDS7UZ6Y0wgS3rH60MJN2T0F5g/zhSdLtdhUC1RVqXDVSd7SL8oGw8TCGtPjCrBNW4mSxUA0Dh/KQ+g4Vtd+LXizu1FJuXDZhCm60KRbhQHnySgEoPn0eduFj15oJeA8vwaqkE0ZMAE98n3I/ph1sIBdTOFPFrXjXll6hefqs3UN2RDoExmgvH9T3QfkJRbJXPGmWLq6t6oZ3k1gqJ1if+hdi6oOVstyXQxFpO2lkPYmwlLVViZA5QogzVStBALg4zEjspjOb7kKbFHqbD6fL8dEL1i33ca+K0UExYpQw4Ob3fpwLYlVIrUfMJF0ItG5pjFmx5A8Lj074fg4ews/Tu9qiGq68Js4dzwjPkgKuoBsVZez+e9T+qXblq/PXJv5fzh0HjNecefI0Uf1cYBe2q5IvxW8X1v6U7UQTqaJ4hzz5rkIJFvRJbrA9TXBZ+NYf4QoZ9S9vpk+YPzNec4yHiS2PeMWS3/zysmtHyjd5567q0rpF97pgBwq0QvqMTqJ9hBfyXQH6pUBqACOYU1Z5GcxCL4JEPC8tLvZoH9ZdFEb3KXnxKOYTZw/wz72RhmhUfGQ=
+  - secure: uliUIrx3QYreC46qnc/cqoCnN5HB0r3uhK1ZRt1/0FblEcgRMx9xqaprOt3NdlntDnvVqmnR7/RCkCeoZcuHmZgsqll30GIUu0ECZplWoUP3Nigo+mPkriEm2feUezXaKUcVYNiaN5i9Gxh+D1SL71CEAsGdLxEDe3mVDRZjZxfveCPc5fYhDmjZD+5l0JRjxv91bOL39ugZXtg2o0wNFn2Q7O5jIGgPL/kNOR0jtScurzMakxLD2qr6F6rqkcRRPpHR5T83jFGpxdVlZ+hGs5aGTWFjYSzn8yLQHIBexFIJ8Xh0kc7Hn5ZmuV8rfjHBq/EJRSOyl7QuCAZ5NZ/U1fY5R9J93RQRl8An3N8Rhe1OtcEgff917lr/ip8El2sQkjj2aRuU1SijahDXSeMJXgZBSgp6E1MQkH0K1jWRp8w4W6LI3CXICB/fabFgjBA8xFtvDlfoVjSa/28/pnQ7LjlkgVisI0m8hLQmI7eLlgQnyX3MvR090oHvCca7ACy0Wzoss1JSKquoo05YctM/R2FIwa1lDmZSUfdo/yxjTrUfuqL89C2BsneRlsOun5CkTvdAUyARWaqYeJnjhLsl8p6IspRsNk3te6gQVwYiB0uFf3XoSbvMk/TJ2Nu6Htz3jxzi4zQCScgRflReZxmbDjbA+v/1MwI99Ce43WSWCFw=
+
+stages:
+  - test
+  - staging
+  - prod
+
+jobs:
+  include:
+  - name: Linting
+    stage: test
+    before_script:
+      - git remote set-branches --add origin master
+      - git fetch
+    script:
+      - ci/find_changed_templates.sh
+      - ci/cfn_lint.sh
+
+  - name: DeployStaging
+    stage: staging
+    env: ENVIRONMENT="staging"
+    if: branch = staging
+    script:
+      - ci/aws_auth.sh
+      - python ci/apply_sam_workflow.py
+
+  - name: DeployProd
+    stage: prod
+    env: ENVIRONMENT="prod"
+    if: branch = master
+    script:
+      - echo "Manual deploy step"
+      # - ci/aws_auth.sh
+      # - python ci/apply_sam_workflow.py
+
+install:
+  - ci/install_dependencies.sh
