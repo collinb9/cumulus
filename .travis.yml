@@ -1,6 +1,5 @@
 os: linux
 dist: xenial
-
 env:
   global:
   # AWS access key and secret
@@ -47,12 +46,14 @@ jobs:
 
 deploy:
   - provider: script
+    edge: true
     script:
       - echo "Deploy Prod"
     on:
       branch: master
 
   - provider: script
+    edge: true
     script:
       - echo "Deploy Staging"
     on:

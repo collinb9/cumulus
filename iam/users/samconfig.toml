@@ -1,0 +1,11 @@
+version=0.1
+[bastion.build.parameters]
+profile="bastion"
+stack_name="iam-users"
+region="eu-west-1"
+
+[bastion.deploy.parameters]
+profile="bastion"
+stack_name="iam-users"
+region="eu-west-1"
+capabilities="CAPABILITY_NAMED_IAM"
