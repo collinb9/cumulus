@@ -58,5 +58,14 @@ deploy:
       - echo "Deploy Staging"
     on:
       branch: staging
+
+  - provider: script
+    edge: true
+    script:
+      - echo "Deploy Bastion"
+    on:
+      branch:
+        - staging
+        - master
 install:
   - echo "Install dependencies"
