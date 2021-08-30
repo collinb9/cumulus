@@ -1,8 +1,5 @@
 os: linux
 dist: xenial
-language: python
-cache: pip
-python: 3.8
 env:
   global:
   # AWS access key and secret
@@ -19,37 +16,56 @@ jobs:
   include:
   - name: Linting
     stage: test
+    if: head_branch in (staging, dev) AND branch IN (master, staging)
     before_script:
       - git remote set-branches --add origin master
       - git fetch
     script:
-      - ci/find_changed_templates.sh
-      - ci/cfn_lint.sh
+      - echo "Linting on PRs"
 
-  # - name: DeployBastion
-  #   stage: bastion
-  #   env: ENVIRONMENT="bastion"
-  #   if: branch = staging
-  #   script:
-  #     - echo "Bastion deploy step"
+  - name: BuildBastion
+    stage: bastion
+    env: ENVIRONMENT="bastion"
+    if: head_branch in (staging, dev) AND branch IN (master, staging)
+    script:
+      - echo "Bastion deploy step"
 
-  - name: DeployStaging
+  - name: BuildStaging
     stage: staging
     env: ENVIRONMENT="staging"
-    if: branch = staging
+    if: head_branch = dev AND branch = staging
     script:
-      - ci/aws_auth.sh
-      - python ci/apply_sam_workflow.py
+      - echo "Build staging"
 
-  - name: DeployProd
+  - name: BuildProd
     stage: prod
     env: ENVIRONMENT="prod"
-    if: branch = master
+    if: head_branch = staging AND branch = master
     script:
-      - echo "Manual deploy step"
-      # - ci/aws_auth.sh
-      # - python ci/apply_sam_workflow.py
+      - echo "Build prod"
 
+deploy:
+  - provider: script
+    edge: true
+    script:
+      - echo "Deploy Prod"
+    on:
+      branch: master
+
+  - provider: script
+    edge: true
+    script:
+      - echo "Deploy Staging"
+    on:
+      branch: staging
+
+  - provider: script
+    edge: true
+    script:
+      - echo "Deploy Bastion"
+    on:
+      branch:
+        - staging
+        - master
 install:
-  - chmod +x ci/*
-  - ci/install_dependencies.sh
+  - echo "Install dependencies"
