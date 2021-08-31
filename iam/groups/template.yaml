@@ -1,0 +1,128 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Mappings:
+  AccountId:
+    staging:
+      accountid: 626964907981
+    prod:
+      accountid: 875094265107
+    bastion:
+      accountid: 564188978527
+
+Resources:
+
+  BaseUsers:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: BaseUsers
+      Path: /
+      Policies:
+        - PolicyName: AssumeDeveloperRoles
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - iam:ChangePassword
+                  - iam:ListMFADevices
+                  - iam:ListAccessKeys
+                  - iam:CreateAccessKey
+                  - iam:CreateVirtualMFADevice
+                  - iam:EnableMFADevice
+                Resource: "*"
+
+  Developers:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: Developers
+      Path: /
+      Policies:
+        - PolicyName: AssumeDeveloperRoles
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sts:AssumeRole
+                Resource:
+                  - !Join
+                    - ":"
+                    - - arn
+                      - !Ref AWS::Partition
+                      - "iam:"
+                      - Fn::FindInMap:
+                        - AccountId
+                        - staging
+                        - accountid
+                      - "role/DeveloperAccess-staging"
+                  - !Join
+                    - ":"
+                    - - arn
+                      - !Ref AWS::Partition
+                      - "iam:"
+                      - Fn::FindInMap:
+                        - AccountId
+                        - prod
+                        - accountid
+                      - "role/ReadOnlyAccess"
+
+  Deployers:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: Deployers
+      Path: /
+      Policies:
+        - PolicyName: AssumeDeployersRoles
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sts:AssumeRole
+                Resource:
+                  - !Join
+                    - ":"
+                    - - arn
+                      - !Ref AWS::Partition
+                      - "iam:"
+                      - Fn::FindInMap:
+                        - AccountId
+                        - staging
+                        - accountid
+                      - "role/DeveloperAccess-staging"
+                  - !Join
+                    - ":"
+                    - - arn
+                      - !Ref AWS::Partition
+                      - "iam:"
+                      - Fn::FindInMap:
+                        - AccountId
+                        - prod
+                        - accountid
+                      - "role/DeveloperAccess-prod"
+
+  IAMAdmins:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: IAMAdmins
+      Path: /
+      Policies:
+        - PolicyName: AssumeIAMAdminRole
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sts:AssumeRole
+                Resource:
+                  - !Join
+                    - ":"
+                    - - arn
+                      - !Ref AWS::Partition
+                      - "iam:"
+                      - Fn::FindInMap:
+                        - AccountId
+                        - bastion
+                        - accountid
+                      - "role/IAMAdmin-bastion"
