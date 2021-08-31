@@ -1,9 +1,6 @@
 os: linux
 dist: xenial
-<<<<<<< HEAD
 language: python
-=======
->>>>>>> origin/master
 env:
   global:
   # AWS access key and secret
