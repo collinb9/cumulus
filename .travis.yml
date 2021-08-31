@@ -73,5 +73,5 @@ jobs:
 #           branch:
 #             - staging
 #             - master
-# install:
+install:
   - echo "Install dependencies"
