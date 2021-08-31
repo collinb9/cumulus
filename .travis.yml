@@ -48,6 +48,8 @@ jobs:
 
   - name: Deploy
     stage: deploy
+    script:
+      - echo pass
     deploy:
       - provider: script
         edge: true
