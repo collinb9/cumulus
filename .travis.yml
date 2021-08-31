@@ -46,32 +46,32 @@ jobs:
     script:
       - echo "Build prod"
 
-#   - name: Deploy
-#     stage: deploy
-#     script:
-#       - echo pass
-#     deploy:
-#       - provider: script
-#         edge: true
-#         script:
-#           - echo "Deploy Prod"
-#         on:
-#           branch: master
+  - name: Deploy
+    stage: deploy
+    script:
+      - echo pass
+    deploy:
+      - provider: script
+        edge: true
+        script:
+          - echo "Deploy Prod"
+        on:
+          branch: master
 
-#       - provider: script
-#         edge: true
-#         script:
-#           - echo "Deploy Staging"
-#         on:
-#           branch: staging
+      - provider: script
+        edge: true
+        script:
+          - echo "Deploy Staging"
+        on:
+          branch: staging
 
-#       - provider: script
-#         edge: true
-#         script:
-#           - echo "Deploy Bastion"
-#         on:
-#           branch:
-#             - staging
-#             - master
+      - provider: script
+        edge: true
+        script:
+          - echo "Deploy Bastion"
+        on:
+          branch:
+            - staging
+            - master
 install:
   - echo "Install dependencies"
