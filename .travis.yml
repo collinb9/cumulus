@@ -35,7 +35,7 @@ jobs:
   - name: BuildStaging
     stage: staging
     env: ENVIRONMENT="staging"
-    if: head_branch = dev AND branch = staging
+    if: branch = staging
     script:
       - echo "Build staging"
 
