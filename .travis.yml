@@ -1,5 +1,6 @@
 os: linux
 dist: xenial
+language: python
 env:
   global:
   # AWS access key and secret
@@ -11,6 +12,7 @@ stages:
   - staging
   - bastion
   - prod
+  # - deploy
 
 jobs:
   include:
@@ -23,19 +25,19 @@ jobs:
     script:
       - echo "Linting on PRs"
 
-  - name: BuildStaging
-    stage: staging
-    env: ENVIRONMENT="staging"
-    if: head_branch = dev AND branch = staging
-    script:
-      - echo "Build staging"
-
   - name: BuildBastion
     stage: bastion
     env: ENVIRONMENT="bastion"
     if: head_branch in (staging, dev) AND branch IN (master, staging)
     script:
       - echo "Bastion deploy step"
+
+  - name: BuildStaging
+    stage: staging
+    env: ENVIRONMENT="staging"
+    if: head_branch = dev AND branch = staging
+    script:
+      - echo "Build staging"
 
   - name: BuildProd
     stage: prod
@@ -44,28 +46,32 @@ jobs:
     script:
       - echo "Build prod"
 
-deploy:
-  - provider: script
-    edge: true
+  - name: Deploy
+    stage: deploy
     script:
-      - echo "Deploy Prod"
-    on:
-      branch: master
+      - echo pass
+    deploy:
+      - provider: script
+        edge: true
+        script:
+          - echo "Deploy Prod"
+        on:
+          branch: master
 
-  - provider: script
-    edge: true
-    script:
-      - echo "Deploy Staging"
-    on:
-      branch: staging
+      - provider: script
+        edge: true
+        script:
+          - echo "Deploy Staging"
+        on:
+          branch: staging
 
-  - provider: script
-    edge: true
-    script:
-      - echo "Deploy Bastion"
-    on:
-      branch:
-        - staging
-        - master
+      - provider: script
+        edge: true
+        script:
+          - echo "Deploy Bastion"
+        on:
+          branch:
+            - staging
+            - master
 install:
   - echo "Install dependencies"
