@@ -9,8 +9,9 @@ env:
 stages:
   - test
   - staging
-  # - bastion
+  - bastion
   - prod
+  - deploy
 
 jobs:
   include:
@@ -44,28 +45,30 @@ jobs:
     script:
       - echo "Build prod"
 
-deploy:
-  - provider: script
-    edge: true
-    script:
-      - echo "Deploy Prod"
-    on:
-      branch: master
+  - name: Deploy
+    stage: deploy
+    deploy:
+      - provider: script
+        edge: true
+        script:
+          - echo "Deploy Prod"
+        on:
+          branch: master
 
-  - provider: script
-    edge: true
-    script:
-      - echo "Deploy Staging"
-    on:
-      branch: staging
+      - provider: script
+        edge: true
+        script:
+          - echo "Deploy Staging"
+        on:
+          branch: staging
 
-  - provider: script
-    edge: true
-    script:
-      - echo "Deploy Bastion"
-    on:
-      branch:
-        - staging
-        - master
+      - provider: script
+        edge: true
+        script:
+          - echo "Deploy Bastion"
+        on:
+          branch:
+            - staging
+            - master
 install:
   - echo "Install dependencies"
