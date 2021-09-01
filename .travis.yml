@@ -23,7 +23,7 @@ jobs:
     stage: test
     if: branch IN (master, staging)
     before_script:
-      - git remote set-branches --add origin master
+      - git remote set-branches --add origin env(TRAVIS_BRANCH)
       - git fetch
     script:
       - echo "Linting changed templates"
