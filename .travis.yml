@@ -1,6 +1,9 @@
 os: linux
 dist: xenial
 language: python
+cache: pip
+python: 3.8
+
 env:
   global:
   # AWS access key and secret
@@ -18,60 +21,74 @@ jobs:
   include:
   - name: Linting
     stage: test
-    if: head_branch in (staging, dev) AND branch IN (master, staging)
+    if: branch IN (master, staging)
     before_script:
-      - git remote set-branches --add origin master
+      - git remote set-branches --add origin $TRAVIS_BRANCH
       - git fetch
     script:
-      - echo "Linting on PRs"
+      - echo "Linting changed templates"
+      - source ci/find_changed_files.sh
+      - ci/cfn_lint.sh
 
   - name: BuildBastion
     stage: bastion
     env: ENVIRONMENT="bastion"
-    if: head_branch in (staging, dev) AND branch IN (master, staging)
+    if: branch = master
     script:
-      - echo "Bastion deploy step"
+      - echo "Building bastion ..."
+      - python ci/test_sam_workflow_pr.py
 
   - name: BuildStaging
     stage: staging
     env: ENVIRONMENT="staging"
-    if: head_branch = dev AND branch = staging
+    if: branch = staging
     script:
-      - echo "Build staging"
+      - echo "Building staging ..."
+      - python ci/apply_sam_workflow_pr.py
 
   - name: BuildProd
     stage: prod
     env: ENVIRONMENT="prod"
-    if: head_branch = staging AND branch = master
+    if: branch = master
     script:
-      - echo "Build prod"
+      - echo "Building prod ..."
+      - python ci/test_sam_workflow_pr.py
 
   - name: Deploy
     stage: deploy
     script:
-      - echo pass
+      - echo "Deploy"
     deploy:
       - provider: script
         edge: true
         script:
-          - echo "Deploy Prod"
+          - echo "Deploying Prod ..."
+          - export ENVIRONMENT=prod
+          - python ci/apply_sam_workflow_merge.py
         on:
           branch: master
 
       - provider: script
         edge: true
         script:
-          - echo "Deploy Staging"
+          - echo "Deploy Staging ..."
+          - export ENVIRONMENT=staging
+          - python ci/apply_sam_workflow_merge.py
         on:
           branch: staging
 
       - provider: script
         edge: true
         script:
-          - echo "Deploy Bastion"
+          - echo "Deploy Bastion ..."
+          - export ENVIRONMENT=bastion
+          - python ci/apply_sam_workflow_merge.py 
         on:
           branch:
             - staging
             - master
 install:
   - echo "Install dependencies"
+  - chmod +x ci/*
+  - ci/install_dependencies.sh
+  - ci/aws_auth.sh
