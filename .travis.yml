@@ -26,17 +26,9 @@ jobs:
       - git remote set-branches --add origin $TRAVIS_BRANCH
       - git fetch
     script:
-      - echo "Linting changed templates"
       - source ci/find_changed_files.sh
       - ci/cfn_lint.sh
 
-  - name: BuildBastion
-    stage: bastion
-    env: ENVIRONMENT="bastion"
-    if: branch = master
-    script:
-      - echo "Building bastion ..."
-      - python ci/test_sam_workflow_pr.py
 
   - name: BuildStaging
     stage: staging
@@ -46,12 +38,18 @@ jobs:
       - echo "Building staging ..."
       - python ci/apply_sam_workflow_pr.py
 
+  - name: BuildBastion
+    stage: bastion
+    env: ENVIRONMENT="bastion"
+    if: branch = master
+    script:
+      - python ci/test_sam_workflow_pr.py
+
   - name: BuildProd
     stage: prod
     env: ENVIRONMENT="prod"
     if: branch = master
     script:
-      - echo "Building prod ..."
       - python ci/test_sam_workflow_pr.py
 
   - name: Deploy
@@ -61,32 +59,22 @@ jobs:
     deploy:
       - provider: script
         edge: true
-        script:
-          - echo "Deploying Prod ..."
-          - export ENVIRONMENT=prod
-          - python ci/apply_sam_workflow_merge.py
-        on:
-          branch: master
-
-      - provider: script
-        edge: true
-        script:
-          - echo "Deploy Staging ..."
-          - export ENVIRONMENT=staging
-          - python ci/apply_sam_workflow_merge.py
+        script: ci/deploy.sh staging
         on:
           branch: staging
 
       - provider: script
         edge: true
-        script:
-          - echo "Deploy Bastion ..."
-          - export ENVIRONMENT=bastion
-          - python ci/apply_sam_workflow_merge.py 
+        script: ci/deploy.sh bastion
         on:
           branch:
-            - staging
             - master
+
+      - provider: script
+        edge: true
+        script: ci/deploy.sh master
+        on:
+          branch: master
 install:
   - echo "Install dependencies"
   - chmod +x ci/*
