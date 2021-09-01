@@ -11,7 +11,6 @@ if __name__ == "__main__":
     changed_sam_stacks = utils.find_sam_stacks_containing_files(changed_files)
     print("Changed stacks: ", changed_sam_stacks)
     for stack in changed_sam_stacks:
-
         environments = utils.read_environments_in_sam_stack(stack)
         if ENVIRONMENT in environments:
             utils.add_arguments_to_sam_config_file(
