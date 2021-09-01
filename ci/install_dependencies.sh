@@ -6,5 +6,8 @@ unzip awscliv2.zip
 sudo ./aws/install
 aws --version
 
+# cfn-nag
+gem install cfn-nag
+
 # Python packages
 python -m pip install -r dev_requirements.txt
