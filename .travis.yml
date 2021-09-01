@@ -29,7 +29,7 @@ jobs:
       - git fetch
     script:
       - echo "Linting changed templates"
-      - ci/find_changed_files.sh
+      - source ci/find_changed_files.sh
       - ci/cfn_lint.sh
 
   - name: BuildBastion
@@ -66,7 +66,7 @@ jobs:
         script:
           - echo "Deploying Prod ..."
           - export ENVIRONMENT=prod
-          - python ci/apply_sam_workflow_merge.py 
+          - python ci/apply_sam_workflow_merge.py
         on:
           branch: master
 
@@ -75,7 +75,7 @@ jobs:
         script:
           - echo "Deploy Staging ..."
           - export ENVIRONMENT=staging
-          - python ci/apply_sam_workflow_merge.py 
+          - python ci/apply_sam_workflow_merge.py
         on:
           branch: staging
 
