@@ -35,8 +35,7 @@ jobs:
     env: ENVIRONMENT="staging"
     if: branch = staging
     script:
-      - echo "Building staging ..."
-      - python ci/apply_sam_workflow_pr.py
+      - echo "Build staging"
 
   - name: BuildBastion
     stage: bastion
