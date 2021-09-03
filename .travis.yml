@@ -29,7 +29,6 @@ jobs:
       - source ci/find_changed_files.sh
       - ci/cfn_lint.sh
 
-
   - name: BuildStaging
     stage: staging
     env: ENVIRONMENT="staging"
@@ -37,6 +36,20 @@ jobs:
     script:
       - echo "Building staging ..."
       - python ci/apply_sam_workflow_pr.py
+
+  - name: BuildBastion
+    stage: bastion
+    env: ENVIRONMENT="bastion"
+    if: branch = master
+    script:
+      - python ci/test_sam_workflow_pr.py
+
+  - name: BuildStaging
+    stage: staging
+    env: ENVIRONMENT="staging"
+    if: head_branch = dev AND branch = staging
+    script:
+      - echo "Build staging"
 
   - name: BuildBastion
     stage: bastion
