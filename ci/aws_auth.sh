@@ -6,7 +6,6 @@ cat > ~/.aws/credentials << EOL
 [default]
 aws_access_key_id = ${AWS_ACCESS_KEY_ID}
 aws_secret_access_key = ${AWS_SECRET_ACCESS_KEY}
-
 EOL
 
 cat > ~/.aws/config << EOL
@@ -19,13 +18,13 @@ source_profile = default
 [profile staging]
 region = eu-west-1
 output = json
-role-arn = arn:aws:iam::564188978527:role/DeveloperAccess-staging
+role-arn = arn:aws:iam::626964907981:role/DeveloperAccess-staging
 source_profile = default
 
 [profile prod]
 region = eu-west-1
 output = json
-role-arn = arn:aws:iam::564188978527:role/DeveloperAccess-prod
+role-arn = arn:aws:iam::875094265107:role/DeveloperAccess-prod
 source_profile = default
 EOL
 
