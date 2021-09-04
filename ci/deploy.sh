@@ -8,6 +8,7 @@ echo "Deploying $ENVIRONMENT ..."
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 aws sts get-caller-identity --profile $ENVIRONMENT
 =======
 aws -version
@@ -17,6 +18,10 @@ ci/aws_auth.sh
 >>>>>>> 92d202a (fix)
 =======
 >>>>>>> b737daf (fix)
+=======
+export AWS_CONFIG_FILE="~/.aws/config"
+export AWS_SHARED_CREDENTIALS_FILE="~/.aws/credentials"
+>>>>>>> 9c25efb (export config and credentials location)
 aws --version
 >>>>>>> 5ee2619 (fix)
 which aws
