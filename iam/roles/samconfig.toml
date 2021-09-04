@@ -15,8 +15,8 @@ parameter_overrides=["TargetEnvironment=bastion"]
 
 [staging.build.parameters]
 profile="staging"
-stack_name="iam-roles-bastion"
-# debug=true
+stack_name="iam-roles-staging"
+debug=true
 region="eu-west-1"
 
 [staging.deploy.parameters]
