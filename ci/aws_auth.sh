@@ -29,3 +29,5 @@ source_profile = default
 EOL
 
 ls ~/.aws
+
+aws configure list
