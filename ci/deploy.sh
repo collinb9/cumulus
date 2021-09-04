@@ -29,5 +29,12 @@ which aws
 >>>>>>> 5d1ddcf (debug)
 =======
 aws s3 ls --profile staging
+<<<<<<< HEAD
 >>>>>>> b737daf (fix)
 python ci/apply_sam_workflow_merge.py
+=======
+cd iam/roles
+sam build --config-env $ENVIRONMENT
+sam deploy --config-env $ENVIRONMENT
+# python ci/apply_sam_workflow_merge.py
+>>>>>>> 3685ecd (try this)
