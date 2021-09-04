@@ -52,7 +52,7 @@ jobs:
 
   - name: Deploy
     stage: deploy
-    if: branch IN (master, staging)
+    # if: branch IN (master, staging)
     script:
     script:
       - echo "Deploy"
