@@ -1,5 +1,5 @@
 os: linux
-dist: xenial
+dist: ubuntu
 language: python
 cache: pip
 python: 3.8
