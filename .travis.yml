@@ -59,7 +59,7 @@ jobs:
     deploy:
       - provider: script
         edge: true
-        script: sudo ci/deploy.sh staging
+        script: ci/deploy.sh staging
         on:
           branch: staging
 
@@ -76,6 +76,6 @@ jobs:
           branch: master
 install:
   - echo "Install dependencies"
-  - sudo chmod +x ci/*
+  - chmod +x ci/*
   - ci/install_dependencies.sh
-  - sudo ci/aws_auth.sh
+  - ci/aws_auth.sh
