@@ -76,6 +76,6 @@ jobs:
           branch: master
 install:
   - echo "Install dependencies"
-  - chmod +x ci/*
+  - sudo chmod +x ci/*
   - ci/install_dependencies.sh
   - ci/aws_auth.sh

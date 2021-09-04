@@ -33,6 +33,7 @@ region = eu-west-1
 output = json
 role-arn = arn:aws:iam::875094265107:role/DeveloperAccess-prod
 source_profile = default
+
 EOL
 
 ls ~/.aws
