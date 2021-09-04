@@ -11,6 +11,5 @@ if __name__ == "__main__":
         utils.apply_sam_workflow_to_stack(
             stack,
             environment=utils.Environment(ENVIRONMENT),
-            deploy_args=["--debug"],
         )
     print("Complete!")
