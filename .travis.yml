@@ -35,6 +35,7 @@ jobs:
     if: branch = staging
     script:
       - echo "Build staging"
+      - python ci/apply_sam_workflow_pr.py
 
   - name: BuildBastion
     stage: bastion
