@@ -6,10 +6,14 @@ echo "Deploying $ENVIRONMENT ..."
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 aws sts get-caller-identity --profile $ENVIRONMENT
 =======
 aws -version
 =======
+=======
+ci/aws_auth.sh
+>>>>>>> 92d202a (fix)
 aws --version
 >>>>>>> 5ee2619 (fix)
 which aws
