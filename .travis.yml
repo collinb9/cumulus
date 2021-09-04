@@ -36,6 +36,7 @@ jobs:
     if: branch = staging
     script:
       - echo "Build staging"
+      - python ci/apply_sam_workflow_pr.py
 
   - name: BuildBastion
     stage: bastion
@@ -53,6 +54,7 @@ jobs:
 
   - name: Deploy
     stage: deploy
+    if: branch IN (master, staging)
     script:
       - echo "Deploy"
     deploy:
@@ -66,8 +68,7 @@ jobs:
         edge: true
         script: ci/deploy.sh bastion
         on:
-          branch:
-            - master
+          branch: master
 
       - provider: script
         edge: true
