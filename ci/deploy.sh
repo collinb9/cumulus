@@ -47,6 +47,7 @@ sam deploy --config-env $ENVIRONMENT
 aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
 aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
 aws s3 ls --profile staging
+sudo aws s3 ls --profile staging
 # cd iam/roles
 # sam build --config-env $ENVIRONMENT
 # sam deploy --config-env $ENVIRONMENT
