@@ -3,6 +3,7 @@
 mkdir -p ~/.aws
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 cat > ~/.aws/credentials << EOL
 [default]
 <<<<<<< HEAD
@@ -23,6 +24,14 @@ EOL
 aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
 aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
 >>>>>>> 7bba033 (Debug travis deploy (#14))
+=======
+cat > ~/.aws/credentials << EOL
+[default]
+aws_access_key_id=${AWS_ACCESS_KEY_ID}
+aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}
+
+EOL
+>>>>>>> fd9cda0 (write credentials to file)
 
 cat > ~/.aws/config << EOL
 <<<<<<< HEAD
