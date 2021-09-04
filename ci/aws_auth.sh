@@ -10,7 +10,7 @@ aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}
 EOL
 
 cat > ~/.aws/config << EOL
-[profile default]
+[default]
 region = eu-west-1
 output = json
 role-arn = arn:aws:iam::564188978527:role/IAMAdmin-bastion
