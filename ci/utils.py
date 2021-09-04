@@ -88,39 +88,22 @@ def read_environments_in_sam_stack(
     return config.keys()
 
 
-def add_arguments_to_sam_config_file(
-    stack: str,
-    sam_stack_config_file: str = "samconfig.toml",
-    sam_build_stage: SamBuildStage = SamBuildStage.BUILD,
-    environment: Environment = Environment.STAGING,
-    **kwargs,
-):
-    config = load_config_for_stack(
-        stack, sam_stack_config_file=sam_stack_config_file
-    )
-    config[environment.value][sam_build_stage.value]["parameters"].update(
-        **kwargs
-    )
-    config_file = get_config_for_stack(
-        stack, sam_stack_config_file=sam_stack_config_file
-    )
-
-    with open(config_file, "w+") as fpath:
-        toml.dump(config, fpath)
-
-
 def apply_sam_workflow_to_stack(
-    stack: str, environment: Environment = Environment.STAGING
+    stack: str,
+    environment: Environment = Environment.STAGING,
+    deploy_args: List[str] = None,
 ):
     """
     Apply the SAM workflow to a particular stack
     """
+    deploy_args = deploy_args or []
     command = [
         os.path.join(
             os.path.dirname(os.path.realpath(__file__)), "sam_workflow.sh"
         ),
         environment.value,
     ]
+    command.extend(deploy_args)
 
     environments = read_environments_in_sam_stack(stack)
     if environment.value not in environments:
