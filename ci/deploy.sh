@@ -9,4 +9,7 @@ export AWS_SHARED_CREDENTIALS_FILE="~/.aws/credentials"
 aws --version
 which aws
 aws s3 ls --profile staging
-python ci/apply_sam_workflow_merge.py
+cd iam/roles
+sam build --config-env $ENVIRONMENT
+sam deploy --config-env $ENVIRONMENT
+# python ci/apply_sam_workflow_merge.py
