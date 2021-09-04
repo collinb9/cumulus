@@ -9,6 +9,7 @@ if __name__ == "__main__":
     print("Stacks to deploy: ", stacks)
     for stack in stacks:
         utils.apply_sam_workflow_to_stack(
-            stack, environment=utils.Environment(ENVIRONMENT)
+            stack,
+            environment=utils.Environment(ENVIRONMENT),
         )
     print("Complete!")
