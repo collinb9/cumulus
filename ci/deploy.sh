@@ -12,34 +12,37 @@ which aws
 aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
 aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
 
+# aws configure set staging.region eu-west-1
+# aws configure set staging.output json
+# aws configure set staging.role
+
 cat > ~/.aws/config << EOL
 [default]
 region = eu-west-1
 output = json
-role-arn = arn:aws:iam::564188978527:role/IAMAdmin-bastion
+role_arn = arn:aws:iam::564188978527:role/IAMAdmin-bastion
 source_profile = default
 
 [profile bastion]
 region = eu-west-1
 output = json
-role-arn = arn:aws:iam::564188978527:role/IAMAdmin-bastion
+role_arn = arn:aws:iam::564188978527:role/IAMAdmin-bastion
 source_profile = default
 
 [profile staging]
 region = eu-west-1
 output = json
-role-arn = arn:aws:iam::626964907981:role/DeveloperAccess-staging
+role_arn = arn:aws:iam::626964907981:role/DeveloperAccess-staging
 source_profile = default
 
 [profile prod]
 region = eu-west-1
 output = json
-role-arn = arn:aws:iam::875094265107:role/DeveloperAccess-prod
+role_arn = arn:aws:iam::875094265107:role/DeveloperAccess-prod
 source_profile = default
 
 EOL
 
-aws s3 ls --profile staging
 aws sts get-caller-identity
 aws sts get-caller-identity --profile staging
 # cd iam/roles
