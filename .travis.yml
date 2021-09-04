@@ -11,45 +11,45 @@ python: 3.8
   # - secure: uliUIrx3QYreC46qnc/cqoCnN5HB0r3uhK1ZRt1/0FblEcgRMx9xqaprOt3NdlntDnvVqmnR7/RCkCeoZcuHmZgsqll30GIUu0ECZplWoUP3Nigo+mPkriEm2feUezXaKUcVYNiaN5i9Gxh+D1SL71CEAsGdLxEDe3mVDRZjZxfveCPc5fYhDmjZD+5l0JRjxv91bOL39ugZXtg2o0wNFn2Q7O5jIGgPL/kNOR0jtScurzMakxLD2qr6F6rqkcRRPpHR5T83jFGpxdVlZ+hGs5aGTWFjYSzn8yLQHIBexFIJ8Xh0kc7Hn5ZmuV8rfjHBq/EJRSOyl7QuCAZ5NZ/U1fY5R9J93RQRl8An3N8Rhe1OtcEgff917lr/ip8El2sQkjj2aRuU1SijahDXSeMJXgZBSgp6E1MQkH0K1jWRp8w4W6LI3CXICB/fabFgjBA8xFtvDlfoVjSa/28/pnQ7LjlkgVisI0m8hLQmI7eLlgQnyX3MvR090oHvCca7ACy0Wzoss1JSKquoo05YctM/R2FIwa1lDmZSUfdo/yxjTrUfuqL89C2BsneRlsOun5CkTvdAUyARWaqYeJnjhLsl8p6IspRsNk3te6gQVwYiB0uFf3XoSbvMk/TJ2Nu6Htz3jxzi4zQCScgRflReZxmbDjbA+v/1MwI99Ce43WSWCFw=
 
 stages:
-  - test
-  - staging
-  - bastion
-  - prod
+  # - test
+  # - staging
+  # - bastion
+  # - prod
   - deploy
 
 jobs:
   include:
-  - name: Linting
-    stage: test
-    if: branch IN (master, staging)
-    before_script:
-      - git remote set-branches --add origin $TRAVIS_BRANCH
-      - git fetch
-    script:
-      - source ci/find_changed_files.sh
-      - ci/cfn_lint.sh
+  # - name: Linting
+  #   stage: test
+  #   if: branch IN (master, staging)
+  #   before_script:
+  #     - git remote set-branches --add origin $TRAVIS_BRANCH
+  #     - git fetch
+  #   script:
+  #     - source ci/find_changed_files.sh
+  #     - ci/cfn_lint.sh
 
-  - name: BuildStaging
-    stage: staging
-    env: ENVIRONMENT="staging"
-    if: branch = staging
-    script:
-      - echo "Build staging"
-      - python ci/apply_sam_workflow_pr.py
+  # - name: BuildStaging
+  #   stage: staging
+  #   env: ENVIRONMENT="staging"
+  #   if: branch = staging
+  #   script:
+  #     - echo "Build staging"
+  #     - python ci/apply_sam_workflow_pr.py
 
-  - name: BuildBastion
-    stage: bastion
-    env: ENVIRONMENT="bastion"
-    if: branch = master
-    script:
-      - python ci/test_sam_workflow_pr.py
+  # - name: BuildBastion
+  #   stage: bastion
+  #   env: ENVIRONMENT="bastion"
+  #   if: branch = master
+  #   script:
+  #     - python ci/test_sam_workflow_pr.py
 
-  - name: BuildProd
-    stage: prod
-    env: ENVIRONMENT="prod"
-    if: branch = master
-    script:
-      - python ci/test_sam_workflow_pr.py
+  # - name: BuildProd
+  #   stage: prod
+  #   env: ENVIRONMENT="prod"
+  #   if: branch = master
+  #   script:
+  #     - python ci/test_sam_workflow_pr.py
 
   - name: Deploy
     stage: deploy
