@@ -26,6 +26,7 @@ aws --version
 >>>>>>> 5ee2619 (fix)
 which aws
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 5d1ddcf (debug)
 =======
 aws s3 ls --profile staging
@@ -38,3 +39,12 @@ sam build --config-env $ENVIRONMENT
 sam deploy --config-env $ENVIRONMENT
 # python ci/apply_sam_workflow_merge.py
 >>>>>>> 3685ecd (try this)
+=======
+aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+aws s3 ls --profile staging
+# cd iam/roles
+# sam build --config-env $ENVIRONMENT
+# sam deploy --config-env $ENVIRONMENT
+python ci/apply_sam_workflow_merge.py
+>>>>>>> d5b89e6 (try this)
