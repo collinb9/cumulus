@@ -25,10 +25,17 @@ aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
 >>>>>>> 7bba033 (Debug travis deploy (#14))
 
 cat > ~/.aws/config << EOL
+<<<<<<< HEAD
 [default]
 region = eu-west-1
 output = json
 role_arn = arn:aws:iam::564188978527:role/IAMAdmin-bastion
+=======
+[profile default]
+region = eu-west-1
+output = json
+role-arn = arn:aws:iam::564188978527:role/IAMAdmin-bastion
+>>>>>>> c71b993 (test)
 source_profile = default
 
 [profile bastion]
