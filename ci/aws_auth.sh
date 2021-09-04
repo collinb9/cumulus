@@ -28,3 +28,5 @@ output = json
 role-arn = arn:aws:iam::564188978527:role/DeveloperAccess-prod
 source_profile = default
 EOL
+
+ls ~/.aws
