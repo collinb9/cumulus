@@ -35,12 +35,16 @@ EOL
 
 cat > ~/.aws/config << EOL
 <<<<<<< HEAD
+<<<<<<< HEAD
 [default]
 region = eu-west-1
 output = json
 role_arn = arn:aws:iam::564188978527:role/IAMAdmin-bastion
 =======
 [profile default]
+=======
+[default]
+>>>>>>> 51aa57d (fix default config profile)
 region = eu-west-1
 output = json
 role-arn = arn:aws:iam::564188978527:role/IAMAdmin-bastion
