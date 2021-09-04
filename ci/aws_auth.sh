@@ -39,7 +39,11 @@ role_arn = arn:aws:iam::564188978527:role/IAMAdmin-bastion
 source_profile = default
 =======
 role-arn = arn:aws:iam::564188978527:role/IAMAdmin-bastion
+<<<<<<< HEAD
 >>>>>>> 7bba033 (Debug travis deploy (#14))
+=======
+source_profile = default
+>>>>>>> 1f62da4 (add back source profile)
 
 [profile staging]
 region = eu-west-1
@@ -49,10 +53,14 @@ role_arn = arn:aws:iam::626964907981:role/DeveloperAccess-staging
 =======
 role-arn = arn:aws:iam::626964907981:role/DeveloperAccess-staging
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 4f5c3d4 (Fix aws profiles in travis (#13))
 source_profile = default
 =======
 >>>>>>> 7bba033 (Debug travis deploy (#14))
+=======
+source_profile = default
+>>>>>>> 1f62da4 (add back source profile)
 
 [profile prod]
 region = eu-west-1
@@ -62,11 +70,15 @@ role_arn = arn:aws:iam::875094265107:role/DeveloperAccess-prod
 =======
 role-arn = arn:aws:iam::875094265107:role/DeveloperAccess-prod
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 4f5c3d4 (Fix aws profiles in travis (#13))
 source_profile = default
 
 =======
 >>>>>>> 7bba033 (Debug travis deploy (#14))
+=======
+source_profile = default
+>>>>>>> 1f62da4 (add back source profile)
 EOL
 
 ls ~/.aws
