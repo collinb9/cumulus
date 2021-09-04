@@ -38,19 +38,19 @@ jobs:
       - echo "Build staging"
       - python ci/apply_sam_workflow_pr.py
 
-  - name: BuildBastion
-    stage: bastion
-    env: ENVIRONMENT="bastion"
-    if: branch = master
-    script:
-      - python ci/test_sam_workflow_pr.py
+  # - name: BuildBastion
+  #   stage: bastion
+  #   env: ENVIRONMENT="bastion"
+  #   if: branch = master
+  #   script:
+  #     - python ci/test_sam_workflow_pr.py
 
-  - name: BuildProd
-    stage: prod
-    env: ENVIRONMENT="prod"
-    if: branch = master
-    script:
-      - python ci/test_sam_workflow_pr.py
+  # - name: BuildProd
+  #   stage: prod
+  #   env: ENVIRONMENT="prod"
+  #   if: branch = master
+  #   script:
+  #     - python ci/test_sam_workflow_pr.py
 
   - name: Deploy
     stage: deploy
