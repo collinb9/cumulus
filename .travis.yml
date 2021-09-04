@@ -78,5 +78,5 @@ jobs:
 install:
   - echo "Install dependencies"
   - sudo chmod +x ci/*
-  - sudo ci/install_dependencies.sh
+  - ci/install_dependencies.sh
   - sudo ci/aws_auth.sh
