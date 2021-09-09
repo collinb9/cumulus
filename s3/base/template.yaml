@@ -31,57 +31,41 @@ Parameters:
     Type: String
     Default: Private
 
+Conditions:
 
-Mappings:
-  EnvironmentConfig:
-    staging:
-      VersionExpiration: 7
-      LifecycleDays: 30
-      lifecycle-staging: Enabled
-      lifecycle-prod: Disabled
-
-    prod:
-      VersionExpiration: 30
-      LifecycleDays: null
-      lifecycle-staging: Disabled
-      lifecycle-prod: Enabled
-
+  ProdResources:
+   !Equals
+   - !Ref Environment
+   - prod
 
 Resources:
 
   Bucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: !Ref DeletionPolicy
+    UpdateReplacePolicy: Retain
     Properties:
-      AccessControl: !Sub AccessControl
+      AccessControl: !Ref AccessControl
       BucketName: !Sub "${AWS::AccountId}-${BucketName}-${Environment}"
       LifecycleConfiguration:
         Rules:
-          - Id: lifecycle-staging
-            NoncurrentVersionExpirationInDays: !FindInMap
-              - EnvironmentConfig
-              - !Ref Environment
-              - VersionExpiration
-            Status: !FindInMap
-              - EnvironmentConfig
-              - !Ref Environment
-              - lifecycle-staging
-            ExpirationInDays: !FindInMap
-              - EnvironmentConfig
-              - !Ref Environment
-              - LifecycleDays
-          - Id: lifecycle-prod
-            NoncurrentVersionExpirationInDays: !FindInMap
-              - EnvironmentConfig
-              - !Ref Environment
-              - VersionExpiration
-            Status: !FindInMap
-              - EnvironmentConfig
-              - !Ref Environment
-              - lifecycle-prod
-            ExpirationInDays: !FindInMap
-              - EnvironmentConfig
-              - !Ref Environment
-              - LifecycleDays
+          - Id: lifecycle
+            NoncurrentVersionExpirationInDays:
+              !If
+              - ProdResources
+              - 30
+              - 7
+            Status: Enabled
+            ExpirationInDays:
+              !If
+              - ProdResources
+              - 30
+              - !Ref AWS::NoValue
       VersioningConfiguration:
         Status: !Ref Versioning
+
+Metadata:
+  cfn-lint:
+    config:
+      ignore_checks:
+      - E0001 # https://stackoverflow.com/questions/34286395
