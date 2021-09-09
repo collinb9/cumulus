@@ -1,4 +1,5 @@
 version=0.1
+
 [bastion.build.parameters]
 profile="bastion"
 debug=true
@@ -14,8 +15,7 @@ parameter_overrides=["TargetEnvironment=bastion"]
 
 [staging.build.parameters]
 profile="staging"
-stack_name="iam-roles-bastion"
-# debug=true
+stack_name="iam-roles-staging"
 region="eu-west-1"
 
 [staging.deploy.parameters]
