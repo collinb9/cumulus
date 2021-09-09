@@ -2,5 +2,5 @@
 
 git remote set-branches --add origin $TRAVIS_BRANCH
 git fetch
-ci/find_changed_files.sh
+source ci/find_changed_files.sh
 python ci/test_sam_workflow_pr.py
