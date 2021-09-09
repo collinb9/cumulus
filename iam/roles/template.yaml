@@ -215,6 +215,7 @@ Resources:
                 Action:
                   - "iam:*"
                   - "ssm:*"
+                  - s3:*
                 Resource: "*"
 
 Outputs:
