@@ -1,9 +1,7 @@
 """Test SAM deployment workflow to changed stacks"""
 import os
-import subprocess
 import utils
 
-subprocess.run(["source", "ci/find_changed_files.sh"], check=True)
 ENVIRONMENT = os.environ.get("ENVIRONMENT")
 CHANGED_FILES = os.environ.get("CHANGED_FILES", "")
 

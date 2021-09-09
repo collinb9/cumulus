@@ -28,22 +28,21 @@ jobs:
     env: ENVIRONMENT="staging"
     if: branch = staging
     script:
-      - echo "Build staging"
-      - python ci/apply_sam_workflow_pr.py
+      - ci/apply_sam_workflow_pr.sh
 
   - name: BuildBastion
     stage: bastion
     env: ENVIRONMENT="bastion"
     if: branch = master
     script:
-      - python ci/test_sam_workflow_pr.py
+      - ci/test_sam_workflow_pr.sh
 
   - name: BuildProd
     stage: prod
     env: ENVIRONMENT="prod"
     if: branch = master
     script:
-      - python ci/test_sam_workflow_pr.py
+      - python ci/test_sam_workflow_pr.sh
 
   - name: Deploy
     stage: deploy
