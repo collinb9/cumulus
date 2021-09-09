@@ -42,7 +42,7 @@ jobs:
     env: ENVIRONMENT="prod"
     if: branch = master
     script:
-      - python ci/test_sam_workflow_pr.sh
+      - ci/test_sam_workflow_pr.sh
 
   - name: Deploy
     stage: deploy
