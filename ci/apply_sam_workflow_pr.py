@@ -3,7 +3,7 @@ import os
 import utils
 
 ENVIRONMENT = os.environ.get("ENVIRONMENT")
-CHANGED_FILES = os.environ.get("CHANGED_FILES", "")
+CHANGED_FILES = os.environ.get("CHANGED_FILES")
 
 
 if __name__ == "__main__":
