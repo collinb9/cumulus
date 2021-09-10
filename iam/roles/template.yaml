@@ -175,7 +175,6 @@ Resources:
                   - iam:GetLoginProfile
                   - iam:DeletePolicyVersion
                   - iam:ListUserTags
-                  - iam:PutRolePolicy
                 Resource: "*"
 
   IAMAdminRole:
