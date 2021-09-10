@@ -65,7 +65,7 @@ jobs:
 
       - provider: script
         edge: true
-        script: ci/deploy.sh master
+        script: ci/deploy.sh prod
         on:
           branch: master
 install:
