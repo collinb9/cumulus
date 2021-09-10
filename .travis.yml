@@ -1,4 +1,4 @@
-os: linux
+
 dist: ubuntu
 language: python
 cache: pip
