@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >-
-  Buckets that live in the bastion account which can be accessed from any account
+  Base template for creating an s3 bucket
 
 Parameters:
 
