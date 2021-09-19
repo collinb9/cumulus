@@ -1,6 +1,12 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
+Parameters:
+
+  BrendanDefaultPassword:
+    Type: String
+    Default: /iam/user/brendan-default-password
+
 Resources:
   brendan:
     Type: AWS::IAM::User
@@ -10,7 +16,17 @@ Resources:
         - IAMAdmins
         - BaseUsers
       LoginProfile:
-        Password: "T:MUtot=H*joEYnx!&"
+        Password: !Join
+          - ''
+          - - '{'
+            - '{'
+            - 'resolve:'
+            - 'ssm-secure:'
+            - !Ref BrendanDefaultPassword
+            - ':'
+            - '1'
+            - '}'
+            - '}'
         PasswordResetRequired: true
       UserName: brendan
 
