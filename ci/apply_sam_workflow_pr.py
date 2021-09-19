@@ -7,7 +7,6 @@ CHANGED_FILES = os.environ.get("CHANGED_FILES")
 
 
 if __name__ == "__main__":
-    print(os.environ)
     changed_files = CHANGED_FILES.split()
     changed_sam_stacks = utils.find_sam_stacks_containing_files(changed_files)
     print("Changed stacks: ", changed_sam_stacks)
