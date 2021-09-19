@@ -21,22 +21,49 @@ Mappings:
     bastion:
       accountid: 564188978527
 
+Conditions:
+
+  ProdResources:
+    !Or
+    - !Equals
+      - !Ref Environment
+      - prod
+    - !Equals
+      - !Ref Environment
+      - bastion
+
 Resources:
 
-  Artefacts:
-    Type: AWS::Serverless::Application
+  ArtefactsBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
-      Location: ../base/template.yaml
-      Parameters:
-        BucketName: artefacts
-        Environment: !Ref Environment
+      AccessControl: Private
+      BucketName: !Sub "${AWS::AccountId}-artefacts-${Environment}"
+      LifecycleConfiguration:
+        Rules:
+          - Id: lifecycle
+            NoncurrentVersionExpirationInDays:
+              !If
+              - ProdResources
+              - 30
+              - 7
+            Status: Enabled
+            ExpirationInDays:
+              !If
+              - ProdResources
+              - !Ref AWS::NoValue
+              - 30
+      VersioningConfiguration:
+        Status: Enabled
+
+
 
   ArtefactsPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: Fn::GetAtt
-        - Artefacts
-        - Outputs.BucketName
+      Bucket: !Ref ArtefactsBucket
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -79,17 +106,17 @@ Resources:
                 - ":"
                 - !Join
                   - "/"
-                  - - !GetAtt Artefacts.Outputs.BucketName
+                  - - !Ref ArtefactsBucket
                     - "*"
 
 Outputs:
 
   ArtefactsBucket:
-    Value: !GetAtt Artefacts.Outputs.BucketName
+    Value: !Ref ArtefactsBucket
     Export:
       Name: !Sub "${AWS::StackName}-ArtefactsBucket"
 
   ArtefactsBucketArn:
-    Value: !GetAtt Artefacts.Outputs.BucketNameArn
+    Value: !GetAtt ArtefactsBucket.Arn
     Export:
       Name: !Sub "${AWS::StackName}-ArtefactsBucketArn"
