@@ -68,9 +68,9 @@ Outputs:
   BucketName:
     Value: !Ref Bucket
     Export:
-      Name: !Sub ${AWS::StackName}:BucketName
+      Name: BucketName
 
   BucketArn:
     Value: !GetAtt Bucket.Arn
     Export:
-      Name: !Sub ${AWS::StackName}:BucketArn
+      Name: BucketArn
