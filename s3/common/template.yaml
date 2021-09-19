@@ -1,0 +1,122 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >-
+  Buckets that live in the bastion account which can be accessed from any account
+
+Parameters:
+
+  Environment:
+    Description: The account where the resources are created
+    Type: String
+    Default: bastion
+    AllowedValues:
+      - bastion
+
+Mappings:
+  AccountId:
+    staging:
+      accountid: 626964907981
+    prod:
+      accountid: 875094265107
+    bastion:
+      accountid: 564188978527
+
+Conditions:
+
+  ProdResources:
+    !Or
+    - !Equals
+      - !Ref Environment
+      - prod
+    - !Equals
+      - !Ref Environment
+      - bastion
+
+Resources:
+
+  ArtefactsBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      AccessControl: Private
+      BucketName: !Sub "${AWS::AccountId}-artefacts-${Environment}"
+      LifecycleConfiguration:
+        Rules:
+          - Id: lifecycle
+            NoncurrentVersionExpirationInDays:
+              !If
+              - ProdResources
+              - 30
+              - 7
+            Status: Enabled
+            ExpirationInDays:
+              !If
+              - ProdResources
+              - !Ref AWS::NoValue
+              - 30
+      VersioningConfiguration:
+        Status: Enabled
+
+
+
+  ArtefactsPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref ArtefactsBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              - !Join
+                - ":"
+                - - arn
+                  - aws
+                  - "iam:"
+                  - !FindInMap
+                    - AccountId
+                    - prod
+                    - accountid
+              - !Join
+                - ":"
+                - - arn
+                  - aws
+                  - "iam:"
+                  - !FindInMap
+                    - AccountId
+                    - staging
+                    - accountid
+              - !Join
+                - ":"
+                - - arn
+                  - aws
+                  - "iam:"
+                  - !FindInMap
+                    - AccountId
+                    - bastion
+                    - accountid
+            Action: s3:*
+            Resource:
+              !Join
+              - ":"
+              - - arn
+                - aws
+                - s3
+                - ":"
+                - !Join
+                  - "/"
+                  - - !Ref ArtefactsBucket
+                    - "*"
+
+Outputs:
+
+  ArtefactsBucket:
+    Value: !Ref ArtefactsBucket
+    Export:
+      Name: !Sub "${AWS::StackName}-ArtefactsBucket"
+
+  ArtefactsBucketArn:
+    Value: !GetAtt ArtefactsBucket.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-ArtefactsBucketArn"
