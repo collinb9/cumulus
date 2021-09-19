@@ -1,0 +1,76 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  Base template for creating an s3 bucket
+
+Parameters:
+
+  BucketName:
+    Type: String
+
+  Environment:
+    Description: The account where the bucket is being created
+    Type: String
+    Default: staging
+    AllowedValues:
+      - bastion
+      - staging
+      - prod
+
+  Versioning:
+    Description: Versioning configuration for the bucket
+    Type: String
+    Default: Enabled
+
+  AccessControl:
+    Description: Access control for the bucket
+    Type: String
+    Default: Private
+
+Conditions:
+
+  ProdResources:
+    !Or
+    - !Equals
+      - !Ref Environment
+      - prod
+    - !Equals
+      - !Ref Environment
+      - bastion
+
+Resources:
+
+  Bucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      AccessControl: !Ref AccessControl
+      BucketName: !Sub "${AWS::AccountId}-${BucketName}-${Environment}"
+      LifecycleConfiguration:
+        Rules:
+          - Id: lifecycle
+            NoncurrentVersionExpirationInDays:
+              !If
+              - ProdResources
+              - 30
+              - 7
+            Status: Enabled
+            ExpirationInDays:
+              !If
+              - ProdResources
+              - !Ref AWS::NoValue
+              - 30
+      VersioningConfiguration:
+        Status: !Ref Versioning
+
+Outputs:
+
+  BucketName:
+    Value: !Ref Bucket
+    Export:
+      Name: BucketName
+
+  BucketArn:
+    Value: !GetAtt Bucket.Arn
+    Export:
+      Name: BucketArn
