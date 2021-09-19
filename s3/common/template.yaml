@@ -58,8 +58,6 @@ Resources:
       VersioningConfiguration:
         Status: Enabled
 
-
-
   ArtefactsPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
@@ -69,7 +67,7 @@ Resources:
         Statement:
           - Effect: "Allow"
             Principal:
-              - !Join
+              AWS: !Join
                 - ":"
                 - - arn
                   - aws
@@ -78,7 +76,7 @@ Resources:
                     - AccountId
                     - prod
                     - accountid
-              - !Join
+              AWS: !Join
                 - ":"
                 - - arn
                   - aws
@@ -87,7 +85,7 @@ Resources:
                     - AccountId
                     - staging
                     - accountid
-              - !Join
+              AWS: !Join
                 - ":"
                 - - arn
                   - aws
@@ -96,7 +94,8 @@ Resources:
                     - AccountId
                     - bastion
                     - accountid
-            Action: s3:*
+            Action:
+              - "s3:*"
             Resource:
               !Join
               - ":"
