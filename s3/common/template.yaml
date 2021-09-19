@@ -1,0 +1,95 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >-
+  Buckets that live in the bastion account which can be accessed from any account
+
+Parameters:
+
+  Environment:
+    Description: The account where the resources are created
+    Type: String
+    Default: bastion
+    AllowedValues:
+      - bastion
+
+Mappings:
+  AccountId:
+    staging:
+      accountid: 626964907981
+    prod:
+      accountid: 875094265107
+    bastion:
+      accountid: 564188978527
+
+Resources:
+
+  Artefacts:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ../base/template.yaml
+      Parameters:
+        BucketName: artefacts
+        Environment: !Ref Environment
+
+  ArtefactsPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: Fn::GetAtt
+        - Artefacts
+        - Outputs.BucketName
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              - !Join
+                - ":"
+                - - arn
+                  - aws
+                  - "iam:"
+                  - !FindInMap
+                    - AccountId
+                    - prod
+                    - accountid
+              - !Join
+                - ":"
+                - - arn
+                  - aws
+                  - "iam:"
+                  - !FindInMap
+                    - AccountId
+                    - staging
+                    - accountid
+              - !Join
+                - ":"
+                - - arn
+                  - aws
+                  - "iam:"
+                  - !FindInMap
+                    - AccountId
+                    - bastion
+                    - accountid
+            Action: s3:*
+            Resource:
+              !Join
+              - ":"
+              - - arn
+                - aws
+                - s3
+                - ":"
+                - !Join
+                  - "/"
+                  - - !GetAtt Artefacts.Outputs.BucketName
+                    - "*"
+
+Outputs:
+
+  ArtefactsBucket:
+    Value: !GetAtt Artefacts.Outputs.BucketName
+    Export:
+      Name: !Sub "${AWS::StackName}-ArtefactsBucket"
+
+  ArtefactsBucketArn:
+    Value: !GetAtt Artefacts.Outputs.BucketNameArn
+    Export:
+      Name: !Sub "${AWS::StackName}-ArtefactsBucketArn"
