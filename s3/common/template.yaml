@@ -31,8 +31,6 @@ Resources:
         BucketName: artefacts
         Environment: !Ref Environment
 
-
-
   ArtefactsPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
