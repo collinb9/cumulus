@@ -67,33 +67,37 @@ Resources:
         Statement:
           - Effect: "Allow"
             Principal:
-              AWS: !Join
-                - ":"
-                - - arn
-                  - aws
-                  - "iam:"
-                  - !FindInMap
-                    - AccountId
-                    - prod
-                    - accountid
-              AWS: !Join
-                - ":"
-                - - arn
-                  - aws
-                  - "iam:"
-                  - !FindInMap
-                    - AccountId
-                    - staging
-                    - accountid
-              AWS: !Join
-                - ":"
-                - - arn
-                  - aws
-                  - "iam:"
-                  - !FindInMap
-                    - AccountId
-                    - bastion
-                    - accountid
+              AWS:
+                - !Join
+                  - ":"
+                  - - arn
+                    - !Ref AWS::Partition
+                    - "iam:"
+                    - !FindInMap
+                      - AccountId
+                      - prod
+                      - accountid
+                    - root
+                - !Join
+                  - ":"
+                  - - arn
+                    - !Ref AWS::Partition
+                    - "iam:"
+                    - !FindInMap
+                      - AccountId
+                      - staging
+                      - accountid
+                    - root
+                - !Join
+                  - ":"
+                  - - arn
+                    - !Ref AWS::Partition
+                    - "iam:"
+                    - !FindInMap
+                      - AccountId
+                      - bastion
+                      - accountid
+                    - root
             Action:
               - "s3:*"
             Resource:
@@ -107,6 +111,7 @@ Resources:
                   - "/"
                   - - !Ref ArtefactsBucket
                     - "*"
+
 
 Outputs:
 

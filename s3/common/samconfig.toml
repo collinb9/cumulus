@@ -2,8 +2,8 @@ version=0.1
 
 [bastion.build.parameters]
 profile="bastion"
-stack_name="s3-common-bastion"
 region="eu-west-1"
+cached=true
 
 [bastion.deploy.parameters]
 profile="bastion"
