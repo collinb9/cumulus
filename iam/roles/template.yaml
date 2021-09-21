@@ -182,6 +182,7 @@ Resources:
   ReadOnlyAccess:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: !Sub ReadOnlyAccess-${TargetEnvironment}
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -189,7 +190,7 @@ Resources:
             Effect: Allow
             Principal:
               AWS: !Join
-                - ":"
+                - ":""
                 - - arn
                   - !Ref AWS::Partition
                   - "iam:"
