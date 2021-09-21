@@ -29,6 +29,7 @@ Mappings:
       accountid: 564188978527
 
 Resources:
+
   DeveloperAccessRole:
     Type: AWS::IAM::Role
     Properties:
@@ -178,6 +179,28 @@ Resources:
                   - iam:PutRolePolicy
                 Resource: "*"
 
+  ReadOnlyAccess:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              AWS: !Join
+                - ":"
+                - - arn
+                  - !Ref AWS::Partition
+                  - "iam:"
+                  - Fn::FindInMap:
+                    - AccountId
+                    - !Ref SourceEnvironment
+                    - accountid
+                  - root
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/ReadOnlyAccess
+
   IAMAdminRole:
     Type: AWS::IAM::Role
     Properties:
@@ -220,6 +243,7 @@ Resources:
                 Resource: "*"
 
 Outputs:
+
   DeveloperAccessRoleArn:
     Description: ARN of the Developer IAM role
     Value: !GetAtt DeveloperAccessRole.Arn
@@ -255,3 +279,21 @@ Outputs:
         - ":" 
         - - !Ref "AWS::StackName"
           - IAMAdminRoleName
+
+  ReadOnlyAccessArn:
+    Description: ARN of the ReadOnlyAccess role
+    Value: !GetAtt ReadOnlyAccess.Arn
+    Export:
+      Name: !Join
+        - ":"
+        - - !Ref "AWS::StackName"
+          - ReadOnlyAccessArn
+
+  ReadOnlyAccessName:
+    Description: Name of the ReadOnlyAccess role
+    Value: !Ref ReadOnlyAccess
+    Export:
+      Name: !Join
+        - ":"
+        - - !Ref "AWS::StackName"
+          - ReadOnlyAccessName
