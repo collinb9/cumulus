@@ -190,7 +190,7 @@ Resources:
             Effect: Allow
             Principal:
               AWS: !Join
-                - ":""
+                - ":"
                 - - arn
                   - !Ref AWS::Partition
                   - "iam:"
