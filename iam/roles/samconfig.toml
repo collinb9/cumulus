@@ -2,7 +2,6 @@ version=0.1
 
 [bastion.build.parameters]
 profile="bastion"
-stack_name="iam-roles"
 region="eu-west-1"
 
 [bastion.deploy.parameters]
