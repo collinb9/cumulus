@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: Data lake core infrastructure
+Description: Data lake infrastructure
 
 Parameters:
 
@@ -9,6 +9,7 @@ Parameters:
     Type: String
     Default: staging
     AllowedValues:
+      - bastion
       - staging
       - prod
 
@@ -19,37 +20,5 @@ Resources:
     Properties:
       Location: ../s3/base/template.yaml
       Parameters:
-        Environment:
-          Ref: Environment
+        Environment: !Ref Environment
         BucketName: alpha
-
-  AlphaBackupBucket:
-    Type: AWS::Serverless::Application
-    Properties:
-      Location: ../s3/base/template.yaml
-      Parameters:
-        Environment:
-          Ref: Environment
-        BucketName: alpha-backup
-
-Outputs:
-
-  AlphaBucketArn:
-    Value:
-      Fn::GetAtt:
-        - AlphaBucket
-        - Outputs.BucketArn
-    Export:
-      Name:
-        Fn::Sub: ${AWS::StackName}:AlphaBucketArn
-
-  AlphaBackupBucketArn:
-    Value:
-      Fn::GetAtt:
-        - AlphaBackupBucket
-        - Outputs.BucketArn
-    Export:
-      Name:
-        Fn::Sub: ${AWS::StackName}:AlphaBackupBucketArn
-
-
