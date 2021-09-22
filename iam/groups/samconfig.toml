@@ -1,7 +1,6 @@
 version=0.1
 [bastion.build.parameters]
 profile="bastion"
-debug=true
 stack_name="iam-groups"
 region="eu-west-1"
 
