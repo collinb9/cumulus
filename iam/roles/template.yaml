@@ -30,6 +30,8 @@ Mappings:
 
 Resources:
 
+  ########################### roles
+
   DeveloperAccessRole:
     Type: AWS::IAM::Role
     Properties:
@@ -243,6 +245,36 @@ Resources:
                   - s3:*
                 Resource: "*"
 
+  ########################### shared policies
+
+  BastionBucketAccess:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Grant access to buckets in the bastion account
+      ManagedPolicyName: BastionBucketAccess
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              s3:*
+            Resource:
+              !Join
+              - ":"
+              - - arn
+                - !Ref AWS::Partition
+                - s3
+                - ":"
+                - !Join
+                  - "-"
+                  - - !FindInMap
+                      - AccountId
+                      - bastion
+                      - accountid
+                    - artefacts
+                    - "bastion/*"
+      Roles:
+        - !Ref DeveloperAccessRole
 Outputs:
 
   DeveloperAccessRoleArn:

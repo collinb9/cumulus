@@ -1,11 +1,13 @@
 version=0.1
+
 [bastion.build.parameters]
 profile="bastion"
-stack_name="iam-groups"
 region="eu-west-1"
+cached=true
 
 [bastion.deploy.parameters]
 profile="bastion"
-stack_name="iam-groups"
+stack_name="s3-common-bastion"
 region="eu-west-1"
 capabilities="CAPABILITY_NAMED_IAM"
+parameter_overrides=["Enviornment=bastion"]
