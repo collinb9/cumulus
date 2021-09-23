@@ -15,8 +15,9 @@ jobs:
   include:
   - name: Linting
     stage: test
-    if: type = pull_request AND \
-        branch IN (master, staging)
+    if: |
+      type = pull_request AND \
+      branch IN (master, staging)
     before_script:
       - git remote set-branches --add origin $TRAVIS_BRANCH
       - git fetch
@@ -27,31 +28,35 @@ jobs:
   - name: BuildStaging
     stage: staging
     env: ENVIRONMENT="staging"
-    if: type = push AND \
-        branch = staging
+    if: |
+      type = pull_request AND \
+      branch = staging
     script:
       - ci/apply_sam_workflow_pr.sh
 
   - name: BuildBastion
     stage: bastion
     env: ENVIRONMENT="bastion"
-    if: type = pull_request AND \
-        branch = master
+    if: |
+      type = pull_request AND \
+      branch = master
     script:
       - ci/test_sam_workflow_pr.sh
 
   - name: BuildProd
     stage: prod
     env: ENVIRONMENT="prod"
-    if: type = pull_request AND \
-        branch = master
+    if: |
+      type = pull_request AND \
+      branch = master
     script:
       - ci/test_sam_workflow_pr.sh
 
   - name: Deploy
     stage: deploy
-    if: type = push \
-        branch IN (master, staging)
+    if: |
+      type = push AND \
+      branch IN (master, staging)
     script:
       - echo "Deploy"
     deploy:
