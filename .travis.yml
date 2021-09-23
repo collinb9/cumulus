@@ -27,8 +27,7 @@ jobs:
   - name: BuildStaging
     stage: staging
     env: ENVIRONMENT="staging"
-    if: type = pull_request AND \
-        branch = staging
+    if: branch = staging
     script:
       - ci/apply_sam_workflow_pr.sh
 
