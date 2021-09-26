@@ -1,0 +1,97 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Template for a lambda function
+
+Parameters:
+
+  Environment:
+    Description: The account where the functino is being created
+    Type: String
+    Default: staging
+    AllowedValues:
+      - bastion
+      - staging
+      - prod
+
+  FunctionName:
+    Type: String
+
+  Handler:
+    Default: lambda_function.lambda_handler
+    Type: String
+
+  Runtime:
+    Default: python3.8
+    Type: String
+
+  CodeUri:
+    Type: String
+
+  Description:
+    Type: String
+
+  MemorySize:
+    Type: Number
+    Default: 128
+    MaxValue: 10240
+    MinValue: 128
+
+  Timeout:
+    Type: Number
+    Default: 30
+
+  Role:
+    Description: ARN of the role that the lambda function assumes
+    Type: String
+
+  LogRetentionInDays:
+    Type: Number
+    Default: 7
+
+Mappings:
+  EnvironmentConfig:
+    staging:
+      LogLevel: DEBUG
+      LogRetention: 31
+    prod:
+      LogLevel: INFO
+      LogRetention: 365
+
+Resources:
+
+  Function:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${FunctionName}-function-${Environment}"
+      Handler: !Ref Handler
+      Runtime: !Ref Runtime
+      CodeUri: !Ref CodeUri
+      Description: !Ref Description
+      MemorySize: !Ref MemorySize
+      Timeout: !Ref Timeout
+      Role: !Ref Role
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap
+            - EnvironmentConfig
+            - !Ref Environment
+            - LogLevel
+
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: !Ref LogRetentionInDays
+      LogGroupName: !Sub /aws/lambda/${Function}
+
+
+Outputs:
+
+  FunctionName:
+    Value: !Ref Function
+    Export:
+      Name: FunctionName
+
+  FunctionArn:
+    Value: !GetAtt Function.Arn
+    Export:
+      Name: FunctionArn
