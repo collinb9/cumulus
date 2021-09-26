@@ -91,6 +91,7 @@ Resources:
                   - "route53:*"
                   - "stepfunctions:*"
                   - "ssm:*"
+                  - "logs:*"
                 Resource: "*"
         - PolicyName: "iam"
           PolicyDocument:
@@ -179,6 +180,7 @@ Resources:
                   - iam:DeletePolicyVersion
                   - iam:ListUserTags
                   - iam:PutRolePolicy
+                  - iam:PassRole
                 Resource: "*"
 
   ReadOnlyAccess:
