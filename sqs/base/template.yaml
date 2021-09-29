@@ -1,0 +1,72 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Template for an SQS queue and accompanying DLQ
+
+Parameters:
+
+  Environment:
+    Description: The account where the queue is being created
+    Type: String
+    Default: staging
+    AllowedValues:
+      - staging
+      - prod
+
+  QueueName:
+    Description: Name of the queue
+    Type: String
+
+  MaxRetries:
+    Description: Max number of retries before item is moved to dlq
+    Type: String
+    Default: 3
+
+  Timeout:
+    Description: Number of seconds that a message becomes invisible after being consumed
+    Type: Number
+    Default: 30
+
+  Retention:
+    Description: Number of seconds a message stays in the queue
+    Type: Number
+    Default: 345600
+
+  DlqRetention:
+    Description: Number of seconds a message stays in the dlq
+    Type: Number
+    Default: 345600
+Resources:
+
+  Queue:
+    Type: AWS::SQS::Queue
+    Properties:
+      DelaySeconds: 0
+      MessageRetentionPeriod: !Ref Retention
+      QueueName: !Sub "${QueueName}-queue-${Environment}"
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt Dlq.Arn
+        maxReceiveCount: !Ref MaxRetries
+      VisibilityTimeout: !Ref Timeout
+
+  Dlq:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${QueueName}-dlq-${Environment}"
+      MessageRetentionPeriod: !Ref DlqRetention
+
+Outputs:
+
+  Queue:
+    Value: !Ref Queue
+    Export:
+      Name: Queue
+
+  QueueArn:
+    Value: !GetAtt Queue.Arn
+    Export:
+      Name: QueueArn
+
+  QueueName:
+    Value: !GetAtt Queue.QueueName
+    Export:
+      Name: QueueName
