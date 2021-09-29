@@ -48,6 +48,12 @@ Parameters:
     Type: Number
     Default: 7
 
+  FirehoseDeliveryStream:
+    Type: String
+    Description: >-
+      An environment variable for the function. The name of a firehose
+      delivery stream
+
 Mappings:
   EnvironmentConfig:
     staging:
@@ -76,6 +82,7 @@ Resources:
             - EnvironmentConfig
             - !Ref Environment
             - LogLevel
+          FIREHOSE_DELIVERY_STREAM: !Ref FirehoseDeliveryStream
 
   LogGroup:
     Type: AWS::Logs::LogGroup
