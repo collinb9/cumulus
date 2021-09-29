@@ -46,6 +46,15 @@ Resources:
                   - sqs:GetQueueAttributes
                   - sqs:ChangeMessageVisibility
                 Resource: !GetAtt IngestUnderstatQueue.Outputs.QueueArn
+        - PolicyName: kinsesis
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - firehose:PutRecord
+                Resource:
+                  Fn::ImportValue: !Sub lake-${Environment}:FootballUnderstatDeliveryStreamArn
 
   IngestUnderstatFunction:
     Type: AWS::Serverless::Application
@@ -59,6 +68,8 @@ Resources:
         MemorySize: 128
         Timeout: 30
         Role: !GetAtt IngestUnderstatFunctionRole.Arn
+        FirehoseDeliveryStream:
+          Fn::ImportValue: !Sub lake-${Environment}:FootballUnderstatDeliveryStream
 
   IngestUnderstatQueue:
     Type: AWS::Serverless::Application
@@ -74,3 +85,16 @@ Resources:
     Properties:
       EventSourceArn: !GetAtt IngestUnderstatQueue.Outputs.QueueArn
       FunctionName: !GetAtt IngestUnderstatFunction.Outputs.FunctionName
+
+
+Outputs:
+
+  IngestUnderstatFunctionName:
+    Value: !GetAtt IngestUnderstatFunction.Outputs.FunctionName
+    Export:
+      Name: !Sub ${AWS::StackName}:IngestUnderstatFunctionName
+
+  IngestUnderstatFunctionArn:
+    Value: !GetAtt IngestUnderstatFunction.Outputs.FunctionArn
+    Export:
+      Name: !Sub ${AWS::StackName}:IngestUnderstatFunctionArn
