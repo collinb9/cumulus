@@ -3,7 +3,6 @@ Transform: AWS::Serverless-2016-10-31
 Description: Ingest data from understat.com into lake
 
 Parameters:
-
   Environment:
     Description: The account where the resources are being created
     Type: String
@@ -12,89 +11,82 @@ Parameters:
       - staging
       - prod
 
+Mappings:
+
+  EnvironmentConfig:
+    bastion:
+      accountid: 564188978527
+
 Resources:
 
-  IngestUnderstatFunctionRole:
+  CrawlerCheckpointTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: id
+        Type: String
+      TableName:
+        Fn::Sub: lake-ingest-understat-checkpoint-${Environment}
+
+  FirehoseProcessingLambda:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ../../lambda/base/template.yaml
+      Parameters:
+        CodeUri: ../../lake/ingest/understat/firehose_transform/
+        Description: Process firehose payloads for understat data
+        FunctionName: understat-firehose-processing
+        Role:
+          Fn::GetAtt:
+            - FirehoseProcessingLambdaRole
+            - Arn
+        Timeout: 120
+
+  FirehoseProcessingLambdaRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
-          - Action: sts:AssumeRole
+          - Effect: Allow
             Principal:
               Service: lambda.amazonaws.com
-            Effect: Allow
+            Action: sts:AssumeRole
       Policies:
-        - PolicyName: lambdaexecution
+        - PolicyName: logs
           PolicyDocument:
-            Version: "2012-10-17"
+            Version: '2012-10-17'
             Statement:
-              - Effect: "Allow"
+              - Effect: Allow
                 Action:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: "*"
-        - PolicyName: sqs
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: "Allow"
-                Action:
-                  - sqs:ReceiveMessage
-                  - sqs:DeleteMessage
-                  - sqs:GetQueueAttributes
-                  - sqs:ChangeMessageVisibility
-                Resource: !GetAtt IngestUnderstatQueue.Outputs.QueueArn
-        - PolicyName: kinsesis
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: "Allow"
-                Action:
-                  - firehose:PutRecord
-                Resource:
-                  Fn::ImportValue: !Sub lake-${Environment}:FootballUnderstatDeliveryStreamArn
+                Resource: arn:aws:logs:*:*:*
 
-  IngestUnderstatFunction:
+  LeagueFeed:
     Type: AWS::Serverless::Application
     Properties:
-      Location: ../../../lambda/base/template.yaml
+      Location: ../feed/template.yaml
       Parameters:
-        Environment: !Ref Environment
-        FunctionName: ingest-understat
-        CodeUri: ../../lake/ingest/understat/download_html/
-        Description: Download full html page and push to lake
-        MemorySize: 128
-        Timeout: 30
-        Role: !GetAtt IngestUnderstatFunctionRole.Arn
-        FirehoseDeliveryStream:
-          Fn::ImportValue: !Sub lake-${Environment}:FootballUnderstatDeliveryStream
+        Environment:
+          Ref: Environment
+        Feed: league
+        ProcessingLambdaArn:
+          Fn::GetAtt:
+            - FirehoseProcessingLambda
+            - Outputs.FunctionArn
 
-  IngestUnderstatQueue:
+  MatchFeed:
     Type: AWS::Serverless::Application
     Properties:
-      Location: ../../../sqs/base/template.yaml
+      Location: ../feed/template.yaml
       Parameters:
-        Environment: !Ref Environment
-        QueueName: ingest-understat
-        Timeout: 60
+        Environment:
+          Ref: Environment
+        Feed: match
+        ProcessingLambdaArn:
+          Fn::GetAtt:
+            - FirehoseProcessingLambda
+            - Outputs.FunctionArn
 
-  IngestUnderstatTrigger:
-    Type: AWS::Lambda::EventSourceMapping
-    Properties:
-      EventSourceArn: !GetAtt IngestUnderstatQueue.Outputs.QueueArn
-      FunctionName: !GetAtt IngestUnderstatFunction.Outputs.FunctionName
-
-
-Outputs:
-
-  IngestUnderstatFunctionName:
-    Value: !GetAtt IngestUnderstatFunction.Outputs.FunctionName
-    Export:
-      Name: !Sub ${AWS::StackName}:IngestUnderstatFunctionName
-
-  IngestUnderstatFunctionArn:
-    Value: !GetAtt IngestUnderstatFunction.Outputs.FunctionArn
-    Export:
-      Name: !Sub ${AWS::StackName}:IngestUnderstatFunctionArn

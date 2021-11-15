@@ -12,83 +12,44 @@ Parameters:
       - staging
       - prod
 
-Mappings:
-
-  EnvironmentConfig:
-    staging:
-      BufferInterval: 60
-    prod:
-      BufferInterval: 900
-
 Resources:
-
-  ################################ buckets
 
   AlphaBucket:
     Type: AWS::Serverless::Application
     Properties:
       Location: ../s3/base/template.yaml
       Parameters:
-        Environment: !Ref Environment
+        Environment:
+          Ref: Environment
         BucketName: alpha
 
-  ################################ kinesis
-
-  FootballUnderstatDeliveryStream:
-    Type: AWS::KinesisFirehose::DeliveryStream
+  AlphaBackupBucket:
+    Type: AWS::Serverless::Application
     Properties:
-      DeliveryStreamName: !Sub "alpha-bucket-kinesis-stream-${Environment}"
-      ExtendedS3DestinationConfiguration:
-        BucketARN: !GetAtt AlphaBucket.Outputs.BucketArn
-        CompressionFormat: UNCOMPRESSED
-        ErrorOutputPrefix: errors/!{firehose:error-output-type}/sport=football/source=understat/year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}/
-        Prefix: sport=football/source=understat/year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}/hour=!{timestamp:HH}/
-        RoleARN: !GetAtt DeliveryRole.Arn
-        BufferingHints:
-          IntervalInSeconds:
-            !FindInMap
-            - EnvironmentConfig
-            - !Ref Environment
-            - BufferInterval
-          SizeInMBs: 128
-
-  DeliveryRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: firehose.amazonaws.com
-            Action: sts:AssumeRole
-      Policies:
-        - PolicyName: s3
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-                - Effect: "Allow"
-                  Action:
-                    - "s3:AbortMultipartUpload"
-                    - "s3:GetBucketLocation"
-                    - "s3:GetObject"
-                    - "s3:ListBucket"
-                    - "s3:ListBucketMultipartUploads"
-                    - "s3:PutObject"
-                  Resource:
-                    !Join
-                    - "/"
-                    - - !GetAtt AlphaBucket.Outputs.BucketArn
-                      - "*"
+      Location: ../s3/base/template.yaml
+      Parameters:
+        Environment:
+          Ref: Environment
+        BucketName: alpha-backup
 
 Outputs:
 
-  FootballUnderstatDeliveryStream:
-    Value: !Ref FootballUnderstatDeliveryStream
+  AlphaBucketArn:
+    Value:
+      Fn::GetAtt:
+        - AlphaBucket
+        - Outputs.BucketArn
     Export:
-      Name: !Sub ${AWS::StackName}:FootballUnderstatDeliveryStream
+      Name:
+        Fn::Sub: ${AWS::StackName}:AlphaBucketArn
 
-  FootballUnderstatDeliveryStreamArn:
-    Value: !GetAtt FootballUnderstatDeliveryStream.Arn
+  AlphaBackupBucketArn:
+    Value:
+      Fn::GetAtt:
+        - AlphaBackupBucket
+        - Outputs.BucketArn
     Export:
-      Name: !Sub ${AWS::StackName}:FootballUnderstatDeliveryStreamArn
+      Name:
+        Fn::Sub: ${AWS::StackName}:AlphaBackupBucketArn
+
+
