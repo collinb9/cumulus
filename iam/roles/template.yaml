@@ -15,9 +15,9 @@ Parameters:
   SourceEnvironment:
     Description: The account which has permission to assume the role
     Type: String
-    Default: 'bastion'
+    Default: bastion
     AllowedValues:
-      - 'bastion'
+      - bastion
 
 Mappings:
   AccountId:
@@ -30,8 +30,6 @@ Mappings:
 
 Resources:
 
-  ########################### roles
-
   DeveloperAccessRole:
     Type: AWS::IAM::Role
     Properties:
@@ -39,65 +37,87 @@ Resources:
       Path: /
       RoleName: !Sub DeveloperAccess-${TargetEnvironment}
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Action: sts:AssumeRole
             Effect: Allow
             Principal:
-              AWS: !Join
-                - ":"
-                - - arn
-                  - !Ref AWS::Partition
-                  - "iam:"
-                  - Fn::FindInMap:
-                    - AccountId
-                    - !Ref SourceEnvironment
-                    - accountid
-                  - root
+              AWS:
+                Fn::Join:
+                  - ':'
+                  - - arn
+                    - Ref: AWS::Partition
+                    - 'iam:'
+                    - Fn::FindInMap:
+                      - AccountId
+                      - Ref: SourceEnvironment
+                      - accountid
+                    - root
       Policies:
-        - PolicyName: "cloudformation"
+        - PolicyName: cloudformation
           PolicyDocument:
-            Version: "2012-10-17"
+            Version: '2012-10-17'
             Statement:
-              - Effect: "Allow"
-                Action: "cloudformation:*"
-                Resource: "*"
-        - PolicyName: "resources"
+              - Effect: Allow
+                Action: cloudformation:*
+                Resource: '*'
+        - PolicyName: ecr-public
           PolicyDocument:
-            Version: "2012-10-17"
+            Version: '2012-10-17'
             Statement:
-              - Effect: "Allow"
+              - Effect: Allow
                 Action:
-                  - "s3:*"
-                  - "lambda:*"
-                  - "sqs:*"
-                  - "sns:*"
-                  - "cloudwatch:*"
-                  - "apigateway:*"
-                  - "batch:*"
-                  - "cloudfront:*"
-                  - "cloudtrail:*"
-                  - "cloudwatch:*"
-                  - "dynamodb:*"
-                  - "ecr:*"
-                  - "ecs:*"
-                  - "eventbridge:*"
-                  - "firehose:*"
-                  - "kinesis:*"
-                  - "glacier:*"
-                  - "glue:*"
-                  - "rds:*"
-                  - "redshift:*"
-                  - "route53:*"
-                  - "stepfunctions:*"
-                  - "ssm:*"
-                  - "logs:*"
-                Resource: "*"
-        - PolicyName: "iam"
+                  - ecr-public:*
+                Resource:
+                  Fn::Join:
+                    - ':'
+                    - - arn
+                      - aws
+                      - ecr-public
+                      - ''
+                      - Fn::FindInMap:
+                        - AccountId
+                        - bastion
+                        - accountid
+                      - repository/*
+        - PolicyName: resources
           PolicyDocument:
-            Version: "2012-10-17"
+            Version: '2012-10-17'
             Statement:
-              - Effect: "Allow"
+              - Effect: Allow
+                Action:
+                  - sts:GetServiceBearerToken
+                  - s3:*
+                  - lambda:*
+                  - sqs:*
+                  - sns:*
+                  - cloudwatch:*
+                  - apigateway:*
+                  - batch:*
+                  - cloudfront:*
+                  - cloudtrail:*
+                  - cloudwatch:*
+                  - dynamodb:*
+                  - ecr:*
+                  - ecr-public:*
+                  - ecs:*
+                  - eventbridge:*
+                  - firehose:*
+                  - kinesis:*
+                  - glacier:*
+                  - glue:*
+                  - rds:*
+                  - redshift:*
+                  - route53:*
+                  - stepfunctions:*
+                  - ssm:*
+                  - logs:*
+                Resource: '*'
+        - PolicyName: iam
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
                 Action:
                   - iam:GetPolicyVersion
                   - iam:GetAccountPasswordPolicy
@@ -181,28 +201,30 @@ Resources:
                   - iam:ListUserTags
                   - iam:PutRolePolicy
                   - iam:PassRole
-                Resource: "*"
+                Resource: '*'
 
   ReadOnlyAccess:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub ReadOnlyAccess-${TargetEnvironment}
+      RoleName:
+        Fn::Sub: ReadOnlyAccess-${TargetEnvironment}
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Action: sts:AssumeRole
             Effect: Allow
             Principal:
-              AWS: !Join
-                - ":"
-                - - arn
-                  - !Ref AWS::Partition
-                  - "iam:"
-                  - Fn::FindInMap:
-                    - AccountId
-                    - !Ref SourceEnvironment
-                    - accountid
-                  - root
+              AWS:
+                Fn::Join:
+                  - ':'
+                  - - arn
+                    - Ref: AWS::Partition
+                    - 'iam:'
+                    - Fn::FindInMap:
+                      - AccountId
+                      - Ref: SourceEnvironment
+                      - accountid
+                    - root
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/ReadOnlyAccess
 
@@ -211,43 +233,46 @@ Resources:
     Properties:
       Description: A role which grants full IAM permissions
       Path: /
-      RoleName: !Sub IAMAdmin-${TargetEnvironment}
+      RoleName:
+        Fn::Sub: IAMAdmin-${TargetEnvironment}
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Action: sts:AssumeRole
             Effect: Allow
             Principal:
-              AWS: !Join
-                - ":"
-                - - arn
-                  - !Ref AWS::Partition
-                  - "iam:"
-                  - Fn::FindInMap:
-                    - AccountId
-                    - !Ref SourceEnvironment
-                    - accountid
-                  - root
+              AWS:
+                Fn::Join:
+                  - ':'
+                  - - arn
+                    - Ref: AWS::Partition
+                    - 'iam:'
+                    - Fn::FindInMap:
+                      - AccountId
+                      - Ref: SourceEnvironment
+                      - accountid
+                    - root
       Policies:
-        - PolicyName: "cloudformation"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: "Allow"
-                Action: "cloudformation:*"
-                Resource: "*"
-        - PolicyName: "iam"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: "Allow"
-                Action:
-                  - "iam:*"
-                  - "ssm:*"
-                  - s3:*
-                Resource: "*"
-
-  ########################### shared policies
+      - PolicyName: cloudformation
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action: cloudformation:*
+              Resource: '*'
+      - PolicyName: iam
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - iam:*
+                - ssm:*
+                - s3:*
+                - ecr-public:*
+                - ecr:*
+                - sts:GetServiceBearerToken
+              Resource: '*'
 
   BastionBucketAccess:
     Type: AWS::IAM::ManagedPolicy
@@ -258,77 +283,96 @@ Resources:
         Version: '2012-10-17'
         Statement:
           - Effect: Allow
-            Action:
-              s3:*
+            Action: s3:*
             Resource:
-              !Join
-              - ":"
-              - - arn
-                - !Ref AWS::Partition
-                - s3
-                - ":"
-                - !Join
-                  - "-"
-                  - - !FindInMap
-                      - AccountId
-                      - bastion
-                      - accountid
-                    - artefacts
-                    - "bastion/*"
+              Fn::Join:
+                - ':'
+                - - arn
+                  - Ref: AWS::Partition
+                  - s3
+                  - ':'
+                  - Fn::Join:
+                    - '-'
+                    - - Fn::FindInMap:
+                        - AccountId
+                        - bastion
+                        - accountid
+                      - artefacts
+                      - bastion/*
       Roles:
-        - !Ref DeveloperAccessRole
+        - Ref: DeveloperAccessRole
+
 Outputs:
 
   DeveloperAccessRoleArn:
     Description: ARN of the Developer IAM role
-    Value: !GetAtt DeveloperAccessRole.Arn
+    Value:
+      Fn::GetAtt:
+        - DeveloperAccessRole
+        - Arn
     Export:
-      Name: !Join
-        - ":"
-        - - !Ref "AWS::StackName"
-          - DeveloperAccessRoleArn
+      Name:
+        Fn::Join:
+          - ':'
+          - - Ref: AWS::StackName
+            - DeveloperAccessRoleArn
 
   DeveloperAccessRoleName:
     Description: Name of the Developer IAM role
-    Value: !Ref DeveloperAccessRole
+    Value:
+      Ref: DeveloperAccessRole
     Export:
-      Name: !Join
-        - ":"
-        - - !Ref "AWS::StackName"
-          - DeveloperRoleAccessName
+      Name:
+        Fn::Join:
+          - ':'
+          - - Ref: AWS::StackName
+            - DeveloperRoleAccessName
 
   IAMAdminRoleArn:
     Description: ARN of the IAMAdmin IAM role
-    Value: !GetAtt IAMAdminRole.Arn
+    Value:
+      Fn::GetAtt:
+        - IAMAdminRole
+        - Arn
     Export:
-      Name: !Join
-        - ":"
-        - - !Ref "AWS::StackName"
-          - IAMAdminRoleArn
+      Name:
+        Fn::Join:
+          - ':'
+          - - Ref: AWS::StackName
+            - IAMAdminRoleArn
 
   IAMAdminRoleName:
     Description: Name of the IAMAdmin IAM role
-    Value: !Ref IAMAdminRole
+    Value:
+      Ref: IAMAdminRole
     Export:
-      Name: !Join
-        - ":" 
-        - - !Ref "AWS::StackName"
-          - IAMAdminRoleName
+      Name:
+        Fn::Join:
+          - ':'
+          - - Ref: AWS::StackName
+            - IAMAdminRoleName
 
   ReadOnlyAccessArn:
     Description: ARN of the ReadOnlyAccess role
-    Value: !GetAtt ReadOnlyAccess.Arn
+    Value:
+      Fn::GetAtt:
+        - ReadOnlyAccess
+        - Arn
     Export:
-      Name: !Join
-        - ":"
-        - - !Ref "AWS::StackName"
-          - ReadOnlyAccessArn
+      Name:
+        Fn::Join:
+          - ':'
+          - - Ref: AWS::StackName
+            - ReadOnlyAccessArn
 
   ReadOnlyAccessName:
     Description: Name of the ReadOnlyAccess role
-    Value: !Ref ReadOnlyAccess
+    Value:
+      Ref: ReadOnlyAccess
     Export:
-      Name: !Join
-        - ":"
-        - - !Ref "AWS::StackName"
-          - ReadOnlyAccessName
+      Name:
+        Fn::Join:
+          - ':'
+          - - Ref: AWS::StackName
+            - ReadOnlyAccessName
+
