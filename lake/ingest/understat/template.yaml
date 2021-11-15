@@ -11,12 +11,6 @@ Parameters:
       - staging
       - prod
 
-Mappings:
-
-  EnvironmentConfig:
-    bastion:
-      accountid: 564188978527
-
 Resources:
 
   CrawlerCheckpointTable:
