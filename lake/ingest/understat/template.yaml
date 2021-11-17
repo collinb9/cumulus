@@ -25,7 +25,7 @@ Resources:
   FirehoseProcessingLambda:
     Type: AWS::Serverless::Application
     Properties:
-      Location: ../../lambda/base/template.yaml
+      Location: ../../../lambda/base/template.yaml
       Parameters:
         CodeUri: ../../lake/ingest/understat/firehose_transform/
         Description: Process firehose payloads for understat data
@@ -61,7 +61,7 @@ Resources:
   LeagueFeed:
     Type: AWS::Serverless::Application
     Properties:
-      Location: ../feed/template.yaml
+      Location: ./feed/template.yaml
       Parameters:
         Environment:
           Ref: Environment
@@ -74,7 +74,7 @@ Resources:
   MatchFeed:
     Type: AWS::Serverless::Application
     Properties:
-      Location: ../feed/template.yaml
+      Location: ./feed/template.yaml
       Parameters:
         Environment:
           Ref: Environment

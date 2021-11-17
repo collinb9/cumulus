@@ -50,6 +50,7 @@ Parameters:
 
   FirehoseDeliveryStream:
     Type: String
+    Default: ""
     Description: >-
       An environment variable for the function. The name of a firehose
       delivery stream
