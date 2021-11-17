@@ -59,14 +59,14 @@ Outputs:
   Queue:
     Value: !Ref Queue
     Export:
-      Name: Queue
+      Name: !Sub ${AWS::StackName}:Queue
 
   QueueArn:
     Value: !GetAtt Queue.Arn
     Export:
-      Name: QueueArn
+      Name: !Sub ${AWS::StackName}:QueueArn
 
   QueueName:
     Value: !GetAtt Queue.QueueName
     Export:
-      Name: QueueName
+      Name: !Sub ${AWS::StackName}:QueueName

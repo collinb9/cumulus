@@ -97,9 +97,9 @@ Outputs:
   FunctionName:
     Value: !Ref Function
     Export:
-      Name: FunctionName
+      Name: !Sub ${AWS::StackName}:FunctionName
 
   FunctionArn:
     Value: !GetAtt Function.Arn
     Export:
-      Name: FunctionArn
+      Name: !Sub ${AWS::StackName}:FunctionArn
