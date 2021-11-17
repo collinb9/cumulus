@@ -1,0 +1,160 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Resources needed for one feed for understat data ingestion
+
+Parameters:
+
+  Environment:
+    Description: The account where the resources are being created
+    Type: String
+    Default: staging
+    AllowedValues:
+      - staging
+      - prod
+
+  Sport:
+    Description: Name of the sport that the data is for
+    Type: String
+    Default: football
+
+  Source:
+    Description: Name of the data source
+    Type: String
+    Default: understat
+
+  Feed:
+    Description: Name of the feed that the delivery stream is pushing to s3
+    Type: String
+
+  ProcessingLambdaArn:
+    Description: Arn of the lambda which is used to process the firehose payloads
+    Type: String
+
+Mappings:
+
+  EnvironmentConfig:
+    staging:
+      BufferInterval: 60
+    prod:
+      BufferInterval: 900
+
+Resources:
+
+  DeliveryStream:
+    Type: AWS::KinesisFirehose::DeliveryStream
+    Properties:
+      DeliveryStreamName:
+        Fn::Sub: lake-ingest-${Sport}-${Source}-${Feed}-${Environment}
+      ExtendedS3DestinationConfiguration:
+        BucketARN:
+          Fn::ImportValue:
+            Fn::Sub: lake-${Environment}:AlphaBucketArn
+        CompressionFormat: UNCOMPRESSED
+        ErrorOutputPrefix:
+          Fn::Sub: errors/!{firehose:error-output-type}/sport=${Sport}/source=${Source}/feed=${Feed}/year=!{timestamp:yyyy}/month=!{timestamp:MM}/
+        Prefix:
+          Fn::Sub: sport=${Sport}/source=${Source}/feed=${Feed}/year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}/
+        RoleARN:
+          Fn::GetAtt:
+            - DeliveryRole
+            - Arn
+        ProcessingConfiguration:
+          Enabled: true
+          Processors:
+            - Parameters:
+              - ParameterName: LambdaArn
+                ParameterValue:
+                  Ref: ProcessingLambdaArn
+              Type: Lambda
+        BufferingHints:
+          IntervalInSeconds:
+            Fn::FindInMap:
+              - EnvironmentConfig
+              - Ref: Environment
+              - BufferInterval
+          SizeInMBs: 128
+        S3BackupConfiguration:
+          BucketARN:
+            Fn::ImportValue:
+              Fn::Sub: lake-${Environment}:AlphaBackupBucketArn
+          RoleARN:
+            Fn::GetAtt:
+              - DeliveryRole
+              - Arn
+          BufferingHints:
+            IntervalInSeconds:
+              Fn::FindInMap:
+                - EnvironmentConfig
+                - Ref: Environment
+                - BufferInterval
+            SizeInMBs: 128
+          CompressionFormat: UNCOMPRESSED
+          ErrorOutputPrefix:
+            Fn::Sub: errors/!{firehose:error-output-type}/sport=${Sport}/source=${Source}/feed=${Feed}/year=!{timestamp:yyyy}/month=!{timestamp:MM}/
+          Prefix:
+            Fn::Sub: sport=${Sport}/source=${Source}/feed=${Feed}/year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}/
+        S3BackupMode: Enabled
+
+  DeliveryRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: firehose.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: s3
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+                - s3:AbortMultipartUpload
+                - s3:GetBucketLocation
+                - s3:GetObject
+                - s3:ListBucket
+                - s3:ListBucketMultipartUploads
+                - s3:PutObject
+              Resource:
+                - Fn::Join:
+                  - /
+                  - - Fn::ImportValue:
+                        Fn::Sub: lake-${Environment}:AlphaBucketArn
+                    - '*'
+                - Fn::Join:
+                  - /
+                  - - Fn::ImportValue:
+                        Fn::Sub: lake-${Environment}:AlphaBackupBucketArn
+                    - '*'
+        - PolicyName: lambda
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource:
+                  Ref: ProcessingLambdaArn
+
+Outputs:
+
+  DeliveryStreamName:
+    Value:
+      Ref: DeliveryStream
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}:DeliveryStreamName
+
+  DeliveryStreamArn:
+    Value:
+      Fn::GetAtt:
+        - DeliveryStream
+        - Arn
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}:DeliveryStreamArn
+
+
