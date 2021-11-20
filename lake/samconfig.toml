@@ -16,6 +16,7 @@ stack_name="lake-staging"
 region="eu-west-1"
 s3_bucket="564188978527-artefacts-bastion"
 s3_prefix="lake-staging"
+capabilities=["CAPABILITY_NAMED_IAM"]
 parameter_overrides=["Environment=staging"]
 
 [prod.build.parameters]
@@ -34,4 +35,5 @@ stack_name="lake-prod"
 region="eu-west-1"
 s3_bucket="564188978527-artefacts-bastion"
 s3_prefix="lake-prod"
+capabilities=["CAPABILITY_NAMED_IAM"]
 parameter_overrides=["Environment=prod"]
