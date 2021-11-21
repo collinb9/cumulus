@@ -83,7 +83,7 @@ jobs:
       - install_dependencies
       - run:
           name: Linting
-          command: . ./ci/find_changed_files.sh  "$(cat /tmp/target_branch)" && ./ci/cfn_lint.sh
+          command: cat /tmp/target_branch && . ./ci/find_changed_files.sh  "$(cat /tmp/target_branch)" && ./ci/cfn_lint.sh
 
   build:
     docker:
