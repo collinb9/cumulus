@@ -106,6 +106,7 @@ jobs:
                 curl "$url" \
                 -H "Authorization: $GITHUB_TOKEN" \
                     | ./jq '.base.ref' \
+                    |  tr -d '"' \
                 )
             echo "Target branch - $TARGET_BRANCH"
             echo "$TARGET_BRANCH" > /tmp/target_branch
