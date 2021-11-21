@@ -74,6 +74,12 @@ commands:
 
 
 jobs:
+=======
+# os: linux
+# dist: ubuntu
+# language: python
+# cache: pip
+# python: 3.8
 
   test:
     docker:
