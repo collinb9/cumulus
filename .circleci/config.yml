@@ -85,6 +85,8 @@
 #     script:
 #       - source ci/find_changed_files.sh
 #       - ci/cfn_lint.sh
+version: 2.1
+
 jobs:
 
   test:
