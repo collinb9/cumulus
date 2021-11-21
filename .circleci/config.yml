@@ -108,7 +108,7 @@ jobs:
                     | ./jq '.base.ref' \
                     |  tr -d '"' \
                 )
-            if [ "$TARGET_BRANCH" = "master" || "$TARGET_BRANCH" = "staging"]
+            if [[  "$TARGET_BRANCH" = "master" || "$TARGET_BRANCH" = "staging" ]]
             then
               echo "Target branch - $TARGET_BRANCH"
               echo "$TARGET_BRANCH" > /tmp/target_branch
