@@ -106,7 +106,9 @@ workflows:
         - test:
             filters:
               branches:
-                only: /^master$|^staging$/
+                only:
+                  - master
+                  - staging
 #             filters:
 #               tags:
 #                 only: /^v\d+\.\d+\.\d+(-alpha\.\d+)?$/
