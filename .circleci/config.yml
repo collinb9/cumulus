@@ -122,7 +122,7 @@ jobs:
 
       - run:
           name: Linting
-          command: ls && cat /tmp/target_branch | xargs -I {} source ./ci/find_changed_files.sh {} && ./ci/cfn_lint.sh
+          command: ls && cat /tmp/target_branch | xargs -I {} echo . ./ci/find_changed_files.sh {} && ./ci/cfn_lint.sh
 
 workflows:
     version: 2
