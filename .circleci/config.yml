@@ -102,20 +102,17 @@ jobs:
             curl -L "https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64" \
               -o jq
             chmod u+x jq
-            url="https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pulls/${CIRCLE_PR_NUMBER}
-            curl "$url" \
-              -H "Authorization: $GITHUB_TOKEN" \
-                | ./jq '.base.ref' \
-            # echo TARGET_BRANCH=$(\
-            #     curl "$url" \
-            #     -H "Authorization: $GITHUB_TOKEN" \
-            #         | ./jq '.base.ref' \
-            #     )
-            # echo "$TARGET_BRANCH"
-            # echo git config user.name "$CIRCLE_PROJECT_USERNAME"
-            # echo git config user.email "$GITHUB_EMAIL"
-            # echo git pull origin "$TARGET_BRANCH"
-            # echo "Target branch - $TARGET_BRANCH"
+            url="https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pulls/${CIRCLE_PR_NUMBER}"
+            echo TARGET_BRANCH=$(\
+                curl "$url" \
+                -H "Authorization: $GITHUB_TOKEN" \
+                    | ./jq '.base.ref' \
+                )
+            echo "$TARGET_BRANCH"
+            echo git config user.name "$CIRCLE_PROJECT_USERNAME"
+            echo git config user.email "$GITHUB_EMAIL"
+            echo git pull origin "$TARGET_BRANCH"
+            echo "Target branch - $TARGET_BRANCH"
             # else
             #     echo No PR to build
             # fi
