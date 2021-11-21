@@ -104,6 +104,8 @@ jobs:
             chmod u+x jq
             url="https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pulls/${CIRCLE_PR_NUMBER}"
             echo "CIRCLE_PR_NUMBER = $CIRCLE_PR_NUMBER"
+            echo "CIRCLE_PULL_REQUEST = $CIRCLE_PULL_REQUEST"
+            echo "${CIRCLE_PULL_REQUEST##*/}"
             echo "CIRCLE_PROJECT_REPONAME = $CIRCLE_PROJECT_REPONAME"
             echo "CIRCLE_PROJECT_USERNAME = $CIRCLE_PROJECT_USERNAME"
             echo TARGET_BRANCH=$(\
