@@ -14,15 +14,6 @@
 # jobs:
 #   include:
 
-#   - name: BuildStaging
-#     stage: staging
-#     env: ENVIRONMENT="staging"
-#     if: |
-#       type = pull_request AND \
-#       branch = staging
-#     script:
-#       - ci/apply_sam_workflow_pr.sh
-
 #   - name: BuildBastion
 #     stage: bastion
 #     env: ENVIRONMENT="bastion"
@@ -87,13 +78,11 @@
 #       - ci/cfn_lint.sh
 version: 2.1
 
-jobs:
+commands:
 
-  test:
-    docker:
-      - image: cimg/python:3.8
+  setup:
+    description: Checkout & Get name of target branch
     steps:
-
       - checkout
 
       - run:
@@ -120,15 +109,40 @@ jobs:
               exit 1
             fi
 
+
+jobs:
+
+  lint:
+    docker:
+      - image: cimg/python:3.8
+    steps:
+
+      - setup
+
       - run:
           name: Linting
-          command: cat /tmp/target_branch && . ./ci/find_changed_files.sh  "$(cat /tmp/target_branch)" && ./ci/cfn_lint.sh
+          command: . ./ci/find_changed_files.sh  "$(cat /tmp/target_branch)" && ./ci/cfn_lint.sh
+
+  build_staging:
+
+      - setup
+
+      # - run:
+      #     name: Build Staging
+      #     stage: staging
+      #     env: ENVIRONMENT="staging"
+      #     if: |
+      #       type = pull_request AND \
+      #       branch = staging
+      #     script:
+      #       - ci/apply_sam_workflow_pr.sh
+
 
 workflows:
     version: 2
-    test:
+    lint:
       jobs:
-        - test:
+        - lint:
             filters:
               branches:
                 only:

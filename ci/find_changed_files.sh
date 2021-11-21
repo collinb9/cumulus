@@ -8,7 +8,7 @@ then
     exit 1
 fi
 
-echo $branch
+echo Branch - $branch
 export CHANGED_FILES=`git diff --name-only --diff-filter=d origin/${branch} | tr '\n' ' '`
 echo $CHANGED_FILES
 export CHANGED_TEMPLATES=`git diff --name-only --diff-filter=d origin/${branch} | grep -E 'template.yaml' | tr '\n' ' '`
