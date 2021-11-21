@@ -107,7 +107,6 @@ jobs:
                 curl "$url" \
                 -H "Authorization: $GITHUB_TOKEN" \
                     | ./jq '.base.ref' \
-                    | tr -d '"'\
                 )
             git config user.name "$CIRCLE_PROJECT_USERNAME"
             git config user.email "$GITHUB_EMAIL"
