@@ -108,10 +108,11 @@ jobs:
                     | ./jq '.base.ref' \
                 )
             echo "Target branch - $TARGET_BRANCH"
+            echo "$TARGET_BRANCH" > /tmp/target_branch
 
       - run:
           name: Test exportde env var
-          command: echo "Target branch - $TARGET_BRANCH"
+          command: echo "Target branch - $(cat /tmp/target_branch)"
       # - run:
       #     name: Install dependencies
       #     command: ls && cd "$CIRCLE_PROJECT_REPONAME" && ci/install_dependencies.sh && ci/aws_auth.sh
