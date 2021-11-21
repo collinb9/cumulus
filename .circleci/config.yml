@@ -103,7 +103,7 @@ jobs:
               -o jq
             chmod +x jq
             url="https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pulls/${CIRCLE_PR_NUMBER}
-            TARGET_BRANCH=$(\
+            echo TARGET_BRANCH=$(\
                 curl "$url" \
                 -H "Authorization: $GITHUB_TOKEN" \
                     | ./jq '.base.ref' \
