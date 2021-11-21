@@ -79,6 +79,7 @@ jobs:
     docker:
       - image: cimg/python:3.8
     steps:
+<<<<<<< HEAD
       - setup
       - install_dependencies
       - run:
@@ -164,4 +165,69 @@ workflows:
             requires:
               - test
               - build
+=======
+      - checkout
+      - run:
+          name: Install dependencies
+          command: sudo chmod +x ci/* && ci/install_dependencies.sh && ci/aws_auth.sh
+      - run:
+          name: Linting
+          command: source ci/find_changed_files.sh && ci/cfn_lint.sh
+
+workflows:
+    version: 2
+    test:
+      jobs:
+        - test
+#             filters:
+#               tags:
+#                 only: /^v\d+\.\d+\.\d+(-alpha\.\d+)?$/
+#         - deploy:
+#             requires:
+#               - test
+#             filters:
+#               branches:
+#                 ignore: /.*/
+#               tags:
+#                 only: /^v\d+\.\d+\.\d+(-alpha\.\d+)?$/
+
+#   deploy:
+#     machine:
+#       image: ubuntu-2004:202107-02
+#     steps:
+#       - checkout
+#       - run:
+#           name: Install dependencies
+#           command: chmod u+x ./ci/** && ./ci/install_aws_cli
+#       - run:
+#           name: Authenticate
+#           command: ./ci/aws_auth && chmod u+x ./cd/** && ./cd/docker_auth bastion
+#       - run:
+#           name: Build Docker image
+#           command: ./cd/docker_build understat-crawler $CIRCLE_TAG
+#       - run:
+#           name: Deploy Docker image
+#           command: ./cd/docker_push understat-crawler $CIRCLE_TAG
+#       - run:
+#           name: Clean up untagged images
+#           command: ./cd/docker_remove_untagged_images understat-crawler bastion
+
+# workflows:
+#     version: 2
+#     test-build-deploy:
+#       jobs:
+#         - test:
+#             filters:
+#               tags:
+#                 only: /^v\d+\.\d+\.\d+(-alpha\.\d+)?$/
+#         - deploy:
+#             requires:
+#               - test
+#             filters:
+#               branches:
+#                 ignore: /.*/
+#               tags:
+#                 only: /^v\d+\.\d+\.\d+(-alpha\.\d+)?$/
+
+>>>>>>> ef57491 (Replace travis with circleci)
 
