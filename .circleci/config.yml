@@ -98,24 +98,24 @@ jobs:
       - run:
           name: Checkout branch
           command: |
-            if [[  -n "$CIRCLE_PR_NUMBER" ]] then
-                curl -L "https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64" \
-                  -o jq
-                chmod +x jq
-                url="https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pulls/${CIRCLE_PR_NUMBER}?access_token=${GITHUB_API_TOKEN}"
-                TARGET_BRANCH=$(\
-                    curl https://api.github.com/repos/collinb9/cumulus/pulls/47 \
-                    -H "Authorization: $GITHUB_TOKEN" \
-                        | ./jq '.base.ref' \
-                        | tr -d '"'\
-                    )
-                git config user.name "$CIRCLE_PROJECT_USERNAME"
-                git config user.email "$GITHUB_EMAIL"
-                echo git pull origin "$TARGET_BRANCH"
-                echo "Target branch - $TARGET_BRANCH"
-            else
-                echo No PR to build
-            fi
+            # if [[  -n "$CIRCLE_PR_NUMBER" ]] then
+            curl -L "https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64" \
+              -o jq
+            chmod +x jq
+            url="https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pulls/${CIRCLE_PR_NUMBER}
+            TARGET_BRANCH=$(\
+                curl "$url" \
+                -H "Authorization: $GITHUB_TOKEN" \
+                    | ./jq '.base.ref' \
+                    | tr -d '"'\
+                )
+            git config user.name "$CIRCLE_PROJECT_USERNAME"
+            git config user.email "$GITHUB_EMAIL"
+            echo git pull origin "$TARGET_BRANCH"
+            echo "Target branch - $TARGET_BRANCH"
+            # else
+            #     echo No PR to build
+            # fi
 
       - run:
           name: Install dependencies
