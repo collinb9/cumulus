@@ -93,7 +93,7 @@ jobs:
     docker:
       - image: cimg/python:3.8
     steps:
-      - checkout
+
       - run:
           name: Get name of target branch
           command: |
@@ -108,7 +108,8 @@ jobs:
                     | ./jq '.base.ref' \
                     |  tr -d '"' \
                 )
-            if [ "$TARGET_BRANCH" = "master" || "$TARGET_BRANCH" = "staging"]; then
+            if [ "$TARGET_BRANCH" = "master" || "$TARGET_BRANCH" = "staging"]
+            then
               echo "Target branch - $TARGET_BRANCH"
               echo "$TARGET_BRANCH" > /tmp/target_branch
             else
@@ -116,6 +117,8 @@ jobs:
               echo "Cannot continue build on this branch"
               exit 1
             fi
+
+      - checkout
 
       - run:
           name: Linting
