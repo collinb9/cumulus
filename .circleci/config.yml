@@ -108,18 +108,18 @@ jobs:
                     | ./jq '.base.ref' \
                     |  tr -d '"' \
                 )
-            echo "Target branch - $TARGET_BRANCH"
-            echo "$TARGET_BRANCH" > /tmp/target_branch
+            if [ "$TARGET_BRANCH" = "master" || "$TARGET_BRANCH" = "staging"]; then
+              echo "Target branch - $TARGET_BRANCH"
+              echo "$TARGET_BRANCH" > /tmp/target_branch
+            else
+              echo "Target branch - $TARGET_BRANCH"
+              echo "Cannot continue build on this branch"
+              exit 1
+            fi
 
       - run:
-          name: Test exportde env var
-          command: echo "Target branch - $(cat /tmp/target_branch)"
-      # - run:
-      #     name: Install dependencies
-      #     command: ls && cd "$CIRCLE_PROJECT_REPONAME" && ci/install_dependencies.sh && ci/aws_auth.sh
-      # - run:
-      #     name: Linting
-      #     command: source ci/find_changed_files.sh && ci/cfn_lint.sh
+          name: Linting
+          command: cat /tmp/target_branch | xargs -I {} source ci/find_changed_files.sh {} && ci/cfn_lint.sh
 
 workflows:
     version: 2
