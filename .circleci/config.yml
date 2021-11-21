@@ -94,6 +94,8 @@ jobs:
       - image: cimg/python:3.8
     steps:
 
+      - checkout
+
       - run:
           name: Get name of target branch
           command: |
@@ -117,8 +119,6 @@ jobs:
               echo "Cannot continue build on this branch"
               exit 1
             fi
-
-      - checkout
 
       - run:
           name: Linting
