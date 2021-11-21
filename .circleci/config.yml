@@ -1,0 +1,157 @@
+# os: linux
+# dist: ubuntu
+# language: python
+# cache: pip
+# python: 3.8
+
+# stages:
+#   - test
+#   - staging
+#   - bastion
+#   - prod
+#   - deploy
+
+# jobs:
+#   include:
+
+#   - name: BuildStaging
+#     stage: staging
+#     env: ENVIRONMENT="staging"
+#     if: |
+#       type = pull_request AND \
+#       branch = staging
+#     script:
+#       - ci/apply_sam_workflow_pr.sh
+
+#   - name: BuildBastion
+#     stage: bastion
+#     env: ENVIRONMENT="bastion"
+#     if: |
+#       type = pull_request AND \
+#       branch = master
+#     script:
+#       - ci/test_sam_workflow_pr.sh
+
+#   - name: BuildProd
+#     stage: prod
+#     env: ENVIRONMENT="prod"
+#     if: |
+#       type = pull_request AND \
+#       branch = master
+#     script:
+#       - ci/test_sam_workflow_pr.sh
+
+#   - name: Deploy
+#     stage: deploy
+#     if: |
+#       type = push AND \
+#       branch IN (master, staging)
+#     script:
+#       - echo "Deploy"
+#     deploy:
+#       - provider: script
+#         edge: true
+#         script: ci/deploy.sh staging
+#         on:
+#           branch: staging
+
+#       - provider: script
+#         edge: true
+#         script: ci/deploy.sh bastion
+#         on:
+#           branch: master
+
+#       - provider: script
+#         edge: true
+#         script: ci/deploy.sh prod
+#         on:
+#           branch: master
+# install:
+#   - echo "Install dependencies"
+#   - sudo chmod +x ci/*
+#   - ci/install_dependencies.sh
+#   - ci/aws_auth.sh
+
+# version: 2.1
+
+#   - name: Linting
+#     stage: test
+#     if: |
+#       type = pull_request AND \
+#       branch IN (master, staging)
+#     before_script:
+#       - git remote set-branches --add origin $TRAVIS_BRANCH
+#       - git fetch
+#     script:
+#       - source ci/find_changed_files.sh
+#       - ci/cfn_lint.sh
+jobs:
+
+  test:
+    docker:
+      - image: cimg/python:3.8
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: sudo chmod +x ci/* && ci/install_dependencies.sh && ci/aws_auth.sh
+      - run:
+          name: Linting
+          command: source ci/find_changed_files.sh && ci/cfn_lint.sh
+
+workflows:
+    version: 2
+    test:
+      jobs:
+        - test
+#             filters:
+#               tags:
+#                 only: /^v\d+\.\d+\.\d+(-alpha\.\d+)?$/
+#         - deploy:
+#             requires:
+#               - test
+#             filters:
+#               branches:
+#                 ignore: /.*/
+#               tags:
+#                 only: /^v\d+\.\d+\.\d+(-alpha\.\d+)?$/
+
+#   deploy:
+#     machine:
+#       image: ubuntu-2004:202107-02
+#     steps:
+#       - checkout
+#       - run:
+#           name: Install dependencies
+#           command: chmod u+x ./ci/** && ./ci/install_aws_cli
+#       - run:
+#           name: Authenticate
+#           command: ./ci/aws_auth && chmod u+x ./cd/** && ./cd/docker_auth bastion
+#       - run:
+#           name: Build Docker image
+#           command: ./cd/docker_build understat-crawler $CIRCLE_TAG
+#       - run:
+#           name: Deploy Docker image
+#           command: ./cd/docker_push understat-crawler $CIRCLE_TAG
+#       - run:
+#           name: Clean up untagged images
+#           command: ./cd/docker_remove_untagged_images understat-crawler bastion
+
+# workflows:
+#     version: 2
+#     test-build-deploy:
+#       jobs:
+#         - test:
+#             filters:
+#               tags:
+#                 only: /^v\d+\.\d+\.\d+(-alpha\.\d+)?$/
+#         - deploy:
+#             requires:
+#               - test
+#             filters:
+#               branches:
+#                 ignore: /.*/
+#               tags:
+#                 only: /^v\d+\.\d+\.\d+(-alpha\.\d+)?$/
+
+
