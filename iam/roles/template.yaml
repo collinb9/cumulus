@@ -81,6 +81,7 @@ Resources:
                   - "dynamodb:*"
                   - "ecr:*"
                   - "ecs:*"
+                  - "ec2:*"
                   - "eventbridge:*"
                   - "firehose:*"
                   - "kinesis:*"
@@ -242,11 +243,13 @@ Resources:
                 Action:
                   - "iam:*"
                   - "ssm:*"
-                  - s3:*
+                  - "s3:*"
                 Resource: "*"
 
   ########################### shared policies
 
+
+  # TODO: Move this to the stack with the resources bucket
   BastionBucketAccess:
     Type: AWS::IAM::ManagedPolicy
     Properties:
