@@ -111,6 +111,7 @@ workflows:
                 only:
                   - master
                   - staging
+                  - circleci
 #             filters:
 #               tags:
 #                 only: /^v\d+\.\d+\.\d+(-alpha\.\d+)?$/
