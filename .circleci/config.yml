@@ -178,7 +178,10 @@ workflows:
     version: 2
     test:
       jobs:
-        - test
+        - test:
+            filters:
+              branches:
+                only: /^master$|^staging$/
 #             filters:
 #               tags:
 #                 only: /^v\d+\.\d+\.\d+(-alpha\.\d+)?$/
