@@ -93,38 +93,28 @@ jobs:
     docker:
       - image: cimg/python:3.8
     steps:
-      # - checkout
-
+      - checkout
       - run:
-          name: Checkout branch
+          name: Get name of target branch
           command: |
-            # if [[  -n "$CIRCLE_PR_NUMBER" ]] then
             curl -L "https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64" \
               -o jq
             chmod u+x jq
-            url="https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pulls/${CIRCLE_PR_NUMBER}"
-            echo "CIRCLE_PR_NUMBER = $CIRCLE_PR_NUMBER"
-            echo "CIRCLE_PULL_REQUEST = $CIRCLE_PULL_REQUEST"
-            echo "${CIRCLE_PULL_REQUEST##*/}"
-            echo "CIRCLE_PROJECT_REPONAME = $CIRCLE_PROJECT_REPONAME"
-            echo "CIRCLE_PROJECT_USERNAME = $CIRCLE_PROJECT_USERNAME"
-            echo TARGET_BRANCH=$(\
+            pr_number="${CIRCLE_PULL_REQUEST##*/}"
+            url="https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pulls/${pr_number}"
+            TARGET_BRANCH=$(\
                 curl "$url" \
                 -H "Authorization: $GITHUB_TOKEN" \
                     | ./jq '.base.ref' \
                 )
-            echo "$TARGET_BRANCH"
-            echo git config user.name "$CIRCLE_PROJECT_USERNAME"
-            echo git config user.email "$GITHUB_EMAIL"
-            echo git pull origin "$TARGET_BRANCH"
             echo "Target branch - $TARGET_BRANCH"
-            # else
-            #     echo No PR to build
-            # fi
 
       - run:
-          name: Install dependencies
-          command: ls && cd "$CIRCLE_PROJECT_REPONAME" && ci/install_dependencies.sh && ci/aws_auth.sh
+          name: Test exportde env var
+          command: echo "Target branch - $TARGET_BRANCH"
+      # - run:
+      #     name: Install dependencies
+      #     command: ls && cd "$CIRCLE_PROJECT_REPONAME" && ci/install_dependencies.sh && ci/aws_auth.sh
       # - run:
       #     name: Linting
       #     command: source ci/find_changed_files.sh && ci/cfn_lint.sh
