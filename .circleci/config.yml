@@ -59,7 +59,7 @@ commands:
       - run:
           name: Get name of target branch
           command: |
-            if [[ -n ${CIRCLE_PULL_REQUEST} ]]
+            if [[ ! -z ${CIRCLE_PULL_REQUEST} ]]
             then
               curl -L "https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64" \
                 -o jq
@@ -93,7 +93,7 @@ commands:
       - run:
           name: Check if PR
           command: |
-            if [[ -n ${CIRCLE_PULL_REQUEST} ]]
+            if [[ ! -z ${CIRCLE_PULL_REQUEST} ]]
             then
               echo "Build is for pr ${CIRCLE_PR_NUMBER}"
               exit 0
@@ -108,7 +108,7 @@ commands:
       - run:
           name: Check if PR
           command: |
-            if [[ -n ${CIRCLE_PULL_REQUEST} ]]
+            if [[ ! -z ${CIRCLE_PULL_REQUEST} ]]
             then
               echo "Build is for pr ${CIRCLE_PULL_REQUEST}"
               exit 1
