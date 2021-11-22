@@ -148,6 +148,7 @@ commands:
           name: Install dependencies
           command: |
             ./ci/install_dependencies.sh
+            python -m pip install toml
 jobs:
 
   lint:
