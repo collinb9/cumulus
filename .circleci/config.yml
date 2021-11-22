@@ -94,6 +94,8 @@ jobs:
   build:
     docker:
       - image: cimg/python:3.8
+    environment:
+      ENVIRONMENT: staging
     steps:
       - pr_or_push
       - setup
