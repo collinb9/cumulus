@@ -14,23 +14,6 @@
 # jobs:
 #   include:
 
-#   - name: BuildBastion
-#     stage: bastion
-#     env: ENVIRONMENT="bastion"
-#     if: |
-#       type = pull_request AND \
-#       branch = master
-#     script:
-#       - ci/test_sam_workflow_pr.sh
-
-#   - name: BuildProd
-#     stage: prod
-#     env: ENVIRONMENT="prod"
-#     if: |
-#       type = pull_request AND \
-#       branch = master
-#     script:
-#       - ci/test_sam_workflow_pr.sh
 
 #   - name: Deploy
 #     stage: deploy
@@ -46,17 +29,6 @@
 #         on:
 #           branch: staging
 
-#       - provider: script
-#         edge: true
-#         script: ci/deploy.sh bastion
-#         on:
-#           branch: master
-
-#       - provider: script
-#         edge: true
-#         script: ci/deploy.sh prod
-#         on:
-#           branch: master
 # install:
 #   - echo "Install dependencies"
 #   - sudo chmod +x ci/*
@@ -84,29 +56,65 @@ commands:
     description: Checkout & Get name of target branch
     steps:
       - checkout
-
       - run:
           name: Get name of target branch
           command: |
-            curl -L "https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64" \
-              -o jq
-            chmod u+x jq
-            pr_number="${CIRCLE_PULL_REQUEST##*/}"
-            url="https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pulls/${pr_number}"
-            export TARGET_BRANCH=$(\
-                curl "$url" \
-                -H "Authorization: $GITHUB_TOKEN" \
-                    | ./jq '.base.ref' \
-                    |  tr -d '"' \
-                )
-            if [[  "$TARGET_BRANCH" = "master" || "$TARGET_BRANCH" = "staging" ]]
+            if [[ -n ${CIRCLE_PR_NUMBER} ]]
             then
-              echo "Target branch - $TARGET_BRANCH"
-              echo "$TARGET_BRANCH" > /tmp/target_branch
+              curl -L "https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64" \
+                -o jq
+              chmod u+x jq
+              pr_number="${CIRCLE_PULL_REQUEST##*/}"
+              url="https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pulls/${pr_number}"
+              export TARGET_BRANCH=$(\
+                  curl "$url" \
+                  -H "Authorization: $GITHUB_TOKEN" \
+                      | ./jq '.base.ref' \
+                      |  tr -d '"' \
+                  )
+              if [[  "$TARGET_BRANCH" = "master" || "$TARGET_BRANCH" = "staging" ]]
+              then
+                echo "Target branch - $TARGET_BRANCH"
+                echo "$TARGET_BRANCH" > /tmp/target_branch
+              else
+                echo "Target branch - $TARGET_BRANCH"
+                echo "Cannot continue build on this branch"
+                exit 1
+              fi
             else
-              echo "Target branch - $TARGET_BRANCH"
-              echo "Cannot continue build on this branch"
+              echo "Build is not for a PR. Using current branch as the target branch"
+              echo "$CIRCLE_BRANCH" > /tmp/target_branch
+
+            fi
+
+  check_is_pr:
+    description: Check if the current build is happening because of a PR
+    steps:
+      - run:
+          name: Check if PR
+          command: |
+            if [[ -n ${CIRCLE_PR_NUMBER} ]]
+            then
+              echo "Build is for pr ${CIRCLE_PR_NUMBER}"
+              exit 0
+            else
+              echo "Build is not for a PR"
               exit 1
+            fi
+
+  check_is_push:
+    description: Check if the current build is happening because of a PR
+    steps:
+      - run:
+          name: Check if PR
+          command: |
+            if [[ -n ${CIRCLE_PR_NUMBER} ]]
+            then
+              echo "Build is for pr ${CIRCLE_PR_NUMBER}"
+              exit 1
+            else
+              echo "Build is not for a push to the branch"
+              exit 0
             fi
 
   check_branch:
@@ -135,9 +143,7 @@ jobs:
     docker:
       - image: cimg/python:3.8
     steps:
-
       - setup
-
       - run:
           name: Linting
           command: . ./ci/find_changed_files.sh  "$(cat /tmp/target_branch)" && ./ci/cfn_lint.sh
@@ -148,16 +154,83 @@ jobs:
     environment:
       ENVIRONMENT: staging
     steps:
-
+      - check_is_pr
       - setup
-
-      - check_branch
-          # allowed_branch: staging
-
+      - check_branch:
+          allowed_branch: staging
       - run:
           name: Build Staging
           command: ci/apply_sam_workflow_pr.sh
 
+  build_bastion:
+    docker:
+      - image: cimg/python:3.8
+    environment:
+      ENVIRONMENT: bastion
+    steps:
+      - check_is_pr
+      - setup
+      - check_branch:
+          allowed_branch: master
+      - run:
+          name: Build Bastion
+          command: ci/test_sam_workflow_pr.sh
+
+  build_prod:
+    docker:
+      - image: cimg/python:3.8
+    environment:
+      ENVIRONMENT: prod
+    steps:
+      - check_is_pr
+      - setup
+      - check_branch:
+          allowed_branch: master
+      - run:
+          name: Build Prod
+          command: ci/test_sam_workflow_pr.sh
+
+  deploy_staging:
+    docker:
+      - image: cimg/python:3.8
+    environment:
+      ENVIRONMENT: staging
+    steps:
+      - check_is_push
+      - setup
+      - check_branch:
+          allowed_branch: staging
+      - run:
+          name: Deploy Staging
+          command: ci/deploy.sh staging
+
+  deploy_bastion:
+    docker:
+      - image: cimg/python:3.8
+    environment:
+      ENVIRONMENT: bastion
+    steps:
+      - check_is_push
+      - setup
+      - check_branch:
+          allowed_branch: master
+      - run:
+          name: Deploy Bastion
+          command: ci/deploy.sh bastion
+
+  deploy_prod:
+    docker:
+      - image: cimg/python:3.8
+    environment:
+      ENVIRONMENT: prod
+    steps:
+      - check_is_push
+      - setup
+      - check_branch:
+          allowed_branch: master
+      - run:
+          name: Deploy Prod
+          command: ci/deploy.sh prod
 
 workflows:
     version: 2
@@ -176,6 +249,22 @@ workflows:
         - build_staging:
             requires:
               - lint
+        - build_bastion:
+            requires:
+              - lint
+        - build_prod:
+            requires:
+              - lint
+        - deploy_staging:
+            requires:
+              - lint
+        - deploy_bastion:
+            requires:
+              - lint
+        - deploy_prod:
+            requires:
+              - lint
+
 
 #   deploy:
 #     machine:
