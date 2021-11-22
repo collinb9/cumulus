@@ -73,6 +73,17 @@ commands:
             - "~/.cache/pip"
 
 
+  install_dependencies:
+    description: Install all dependencies
+    parameters:
+      allowed_branch:
+        default: staging
+        type: string
+    steps:
+      - run:
+          name: Install dependencies
+          command: |
+            ./ci/install_dependencies.sh
 jobs:
 =======
 # os: linux
