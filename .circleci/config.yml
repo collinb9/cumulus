@@ -109,6 +109,25 @@ commands:
               exit 1
             fi
 
+  check_branch:
+    description: Check if target branch is correct
+    parameters:
+      allowed_branch:
+        default: staging
+        type: string
+    steps:
+      - run:
+          name: Check target branch
+          command: |
+            target_branch="$(cat /tmp/target_branch)"
+            if [[  "$target_branch" = "<<parameters.allowed_branch>>" ]]
+            then
+              echo "Target branch ${target_branch} = <<parameters.allowed_branch>>. Continuing ..."
+              exit 0
+            else
+              echo "Target branch ${target_branch} != <<parameters.allowed_branch>>. Stopping."
+              exit 1
+            fi
 
 jobs:
 
@@ -126,43 +145,37 @@ jobs:
   build_staging:
     docker:
       - image: cimg/python:3.8
+    environment:
+      ENVIRONMENT: staging
     steps:
 
       - setup
 
-      # - run:
-      #     name: Build Staging
-      #     stage: staging
-      #     env: ENVIRONMENT="staging"
-      #     if: |
-      #       type = pull_request AND \
-      #       branch = staging
-      #     script:
-      #       - ci/apply_sam_workflow_pr.sh
+      - check_branch
+          # allowed_branch: staging
+
+      - run:
+          name: Build Staging
+          command: ci/apply_sam_workflow_pr.sh
 
 
 workflows:
     version: 2
-    lint:
+    test-build-staging:
       jobs:
-        - lint:
-            filters:
-              branches:
-                only:
-                  - master
-                  - staging
-                  - circleci
+        - lint
+            # filters:
+            #   branches:
+            #     only:
+            #       - master
+            #       - staging
+            #       - circleci
 #             filters:
 #               tags:
 #                 only: /^v\d+\.\d+\.\d+(-alpha\.\d+)?$/
-#         - deploy:
-#             requires:
-#               - test
-#             filters:
-#               branches:
-#                 ignore: /.*/
-#               tags:
-#                 only: /^v\d+\.\d+\.\d+(-alpha\.\d+)?$/
+        - build_staging:
+            requires:
+              - lint
 
 #   deploy:
 #     machine:
