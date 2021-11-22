@@ -6,6 +6,18 @@ dependencies:
 
 commands:
 
+  save_exit_code:
+    description: Save status code to a file to be read later
+    parameters:
+      exit_code:
+        type: number
+        default: 0
+    steps:
+      - run:
+          name: Save exit code
+          command: |
+            echo <<parameters.exit_code>> > /tmp/exit_code
+
   setup:
     description: Checkout & Get name of target branch
     steps:
@@ -39,6 +51,8 @@ commands:
               echo "Build is not for a PR. Using current branch as the target branch"
               echo "$CIRCLE_BRANCH" > /tmp/target_branch
             fi
+      - save_exit_code:
+          exit_code: 1
 
   pr_or_push:
     description: Check if the current build is happening because of a PR
