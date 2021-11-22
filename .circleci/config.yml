@@ -124,6 +124,9 @@ jobs:
           command: . ./ci/find_changed_files.sh  "$(cat /tmp/target_branch)" && ./ci/cfn_lint.sh
 
   build_staging:
+    docker:
+      - image: cimg/python:3.8
+    steps:
 
       - setup
 
