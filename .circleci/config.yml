@@ -160,7 +160,7 @@ jobs:
           allowed_branch: staging
       - run:
           name: Build Staging
-          command: ci/apply_sam_workflow_pr.sh
+          command: ci/apply_sam_workflow_pr.sh staging
 
   build_bastion:
     docker:
@@ -174,7 +174,7 @@ jobs:
           allowed_branch: master
       - run:
           name: Build Bastion
-          command: ci/test_sam_workflow_pr.sh
+          command: ci/test_sam_workflow_pr.sh master
 
   build_prod:
     docker:
@@ -188,7 +188,7 @@ jobs:
           allowed_branch: master
       - run:
           name: Build Prod
-          command: ci/test_sam_workflow_pr.sh
+          command: ci/test_sam_workflow_pr.sh master
 
   deploy_staging:
     docker:
