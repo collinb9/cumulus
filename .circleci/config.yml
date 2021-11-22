@@ -137,6 +137,17 @@ commands:
               exit 1
             fi
 
+  install_dependencies:
+    description: Install all dependencies
+    parameters:
+      allowed_branch:
+        default: staging
+        type: string
+    steps:
+      - run:
+          name: Install dependencies
+          command: |
+            ./ci/install_dependencies.sh
 jobs:
 
   lint:
@@ -156,6 +167,7 @@ jobs:
     steps:
       - check_is_pr
       - setup
+      - install_dependencies
       - check_branch:
           allowed_branch: staging
       - run:
@@ -170,6 +182,7 @@ jobs:
     steps:
       - check_is_pr
       - setup
+      - install_dependencies
       - check_branch:
           allowed_branch: master
       - run:
@@ -184,6 +197,7 @@ jobs:
     steps:
       - check_is_pr
       - setup
+      - install_dependencies
       - check_branch:
           allowed_branch: master
       - run:
@@ -198,6 +212,7 @@ jobs:
     steps:
       - check_is_push
       - setup
+      - install_dependencies
       - check_branch:
           allowed_branch: staging
       - run:
@@ -212,6 +227,7 @@ jobs:
     steps:
       - check_is_push
       - setup
+      - install_dependencies
       - check_branch:
           allowed_branch: master
       - run:
@@ -226,6 +242,7 @@ jobs:
     steps:
       - check_is_push
       - setup
+      - install_dependencies
       - check_branch:
           allowed_branch: master
       - run:
