@@ -6,24 +6,6 @@ dependencies:
 
 commands:
 
-  save_exit_code:
-    description: Save status code to a file to be read later
-    parameters:
-      exit_code:
-        type: integer
-        default: 0
-    steps:
-      - attach_workspace:
-          at: /tmp/
-      - run:
-          name: Save exit code
-          command: |
-            echo <<parameters.exit_code>> > /tmp/exit_code
-      - persist_to_workspace:
-          root: /
-          paths:
-            - tmp/exit_status
-
   setup:
     description: Checkout & Get name of target branch
     steps:
@@ -57,8 +39,6 @@ commands:
               echo "Build is not for a PR. Using current branch as the target branch"
               echo "$CIRCLE_BRANCH" > /tmp/target_branch
             fi
-      - save_exit_code:
-          exit_code: 1
 
   pr_or_push:
     description: Check if the current build is happening because of a PR
@@ -125,8 +105,6 @@ jobs:
   build:
     docker:
       - image: cimg/python:3.8
-    environment:
-      ENVIRONMENT: staging
     steps:
       - pr_or_push
       - setup
@@ -175,6 +153,22 @@ jobs:
                 exit 0
             fi
 
+
+            if [[ $target_branch = master ]]
+            then
+                echo Deploying bastion ...
+                ci/deploy.sh bastion
+                echo Deploying prod ...
+                ci/deploy.sh prod
+            elif [[ $target_branch = staging ]]
+            then
+                echo Deploying staging ...
+                ci/deploy.sh staging
+            else
+            then
+                echo Can only deploy master or staging. Exiting.
+                exit 1
+            fi
 
             if [[ $target_branch = master ]]
             then
