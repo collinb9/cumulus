@@ -18,4 +18,5 @@ sam --version
 gem install cfn-nag
 
 # Python packages
+python -m pip install --upgrade pip
 python -m pip install -r dev_requirements.txt

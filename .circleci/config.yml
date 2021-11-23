@@ -68,7 +68,7 @@ commands:
             ./ci/install_dependencies.sh
             python -m pip install toml
       - save_cache:
-          key: python-requirements-V1-{{ checksum "requirements.txt" }}
+          key: python-requirements-V1-{{ checksum "dev_requirements.txt" }}
           paths:
             - "~/.cache/pip"
             - "/usr/local/lib/python3.8/site-packages"
@@ -94,7 +94,7 @@ jobs:
       - pr_or_push
       - setup
       - restore_cache:
-          key: python-requirements-V1-{{ checksum "requirements.txt" }}
+          key: python-requirements-V1-{{ checksum "dev_requirements.txt" }}
       - install_dependencies
       - run:
           name: Build
@@ -124,7 +124,7 @@ jobs:
       - pr_or_push
       - setup
       - restore_cache:
-          key: python-requirements-V1-{{ checksum "requirements.txt" }}
+          key: python-requirements-V1-{{ checksum "dev_requirements.txt" }}
       - install_dependencies
       - run:
           name: Deploy
