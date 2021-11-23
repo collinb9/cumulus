@@ -71,8 +71,6 @@ commands:
           key: python-requirements-V1-{{ checksum "dev_requirements.txt" }}
           paths:
             - "~/.cache/pip"
-            - "/usr/local/lib/python3.8/site-packages"
-            - "/usr/local/lib/site-python"
 
 
 jobs:
