@@ -1,5 +1,9 @@
 version: 2.1
 
+dependencies:
+  pre:
+    - ./ci/install_dependencies
+
 commands:
 
   setup:
@@ -63,6 +67,12 @@ commands:
           command: |
             ./ci/install_dependencies.sh
             python -m pip install toml
+      - save_cache:
+          key: python-requirements-V1-{{ checksum "requirements.txt" }}
+          paths:
+            - "~/.cache/pip"
+            - "/usr/local/lib/python3.8/site-packages"
+            - "/usr/local/lib/site-python"
 
 
 jobs:
@@ -72,6 +82,7 @@ jobs:
       - image: cimg/python:3.8
     steps:
       - setup
+      - install_dependencies
       - run:
           name: Linting
           command: . ./ci/find_changed_files.sh  "$(cat /tmp/target_branch)" && ./ci/cfn_lint.sh
@@ -82,6 +93,8 @@ jobs:
     steps:
       - pr_or_push
       - setup
+      - restore_cache:
+          key: python-requirements-V1-{{ checksum "requirements.txt" }}
       - install_dependencies
       - run:
           name: Build
@@ -110,6 +123,8 @@ jobs:
     steps:
       - pr_or_push
       - setup
+      - restore_cache:
+          key: python-requirements-V1-{{ checksum "requirements.txt" }}
       - install_dependencies
       - run:
           name: Deploy
