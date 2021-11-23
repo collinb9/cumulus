@@ -20,5 +20,5 @@ sam --version
 # Python packages
 python -m venv venv
 source venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -r dev_requirements.txt
+venv/bin/python -m pip install --upgrade pip
+venv/bin/python -m pip install -r dev_requirements.txt
