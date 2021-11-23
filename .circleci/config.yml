@@ -117,7 +117,7 @@ jobs:
             target_branch="$(cat /tmp/target_branch)"
             pr_or_push="$(cat /tmp/pr_or_push)"
 
-            if [[ $target_branch = master ]]
+            if [$target_branch = master]
             then
                 echo Building bastion ...
                 ENVIRONMENT=bastion ./ci/test_sam_workflow_pr.sh master
@@ -165,7 +165,6 @@ jobs:
                 echo Deploying staging ...
                 ci/deploy.sh staging
             else
-            then
                 echo Can only deploy master or staging. Exiting.
                 exit 1
             fi
