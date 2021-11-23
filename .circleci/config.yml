@@ -19,14 +19,14 @@ commands:
           name: Save exit code
           command: |
             echo <<parameters.exit_code>> > /tmp/exit_code
-
-  setup:
-    description: Checkout & Get name of target branch
-    steps:
       - persist_to_workspace:
           root: /
           paths:
             - tmp/exit_status
+
+  setup:
+    description: Checkout & Get name of target branch
+    steps:
       - checkout
       - run:
           name: Get name of target branch
