@@ -59,6 +59,8 @@ commands:
         type: integer
         default: 0
     steps:
+      - attach_workspace:
+          at: /tmp/
       - run:
           name: Save exit code
           command: |
@@ -67,6 +69,10 @@ commands:
   setup:
     description: Checkout & Get name of target branch
     steps:
+      - persist_to_workspace:
+          root: /
+          paths:
+            - tmp/exit_status
       - checkout
       - run:
           name: Get name of target branch
@@ -290,6 +296,8 @@ jobs:
       #           sleep 10
       #         done
       # - run: echo "All required jobs have now completed"
+      - attach_workspace:
+          at: /tmp/
       - run:
           name: Determine success
           command: |
