@@ -67,10 +67,6 @@ commands:
           command: |
             ./ci/install_dependencies.sh
             python -m pip install toml
-      - save_cache:
-          key: python-requirements-V1-{{ checksum "dev_requirements.txt" }}
-          paths:
-            - "~/.cache/pip"
 
 
 jobs:
@@ -84,6 +80,10 @@ jobs:
       - run:
           name: Linting
           command: . ./ci/find_changed_files.sh  "$(cat /tmp/target_branch)" && ./ci/cfn_lint.sh
+      - save_cache:
+          key: python-requirements-V1-{{ checksum "dev_requirements.txt" }}
+          paths:
+            - "~/.cache/pip"
 
   build:
     docker:
