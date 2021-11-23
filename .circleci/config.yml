@@ -80,7 +80,7 @@ jobs:
       - run:
           name: Linting
           command: |
-            python -m pip install cfn-lint
+            source venv/bin/activate
             . ./ci/find_changed_files.sh  "$(cat /tmp/target_branch)" && ./ci/cfn_lint.sh
       - save_cache:
           key: python-requirements-V1-{{ checksum "dev_requirements.txt" }}
