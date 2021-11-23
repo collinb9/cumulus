@@ -10,7 +10,7 @@ commands:
     description: Save status code to a file to be read later
     parameters:
       exit_code:
-        type: number
+        type: integer
         default: 0
     steps:
       - run:
