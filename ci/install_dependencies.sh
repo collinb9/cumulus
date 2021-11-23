@@ -15,7 +15,7 @@ sudo ~/sam-installation/install
 sam --version
 
 # cfn-nag
-gem install cfn-nag
+# gem install cfn-nag
 
 # Python packages
 python -m venv venv
