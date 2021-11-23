@@ -73,24 +73,7 @@ commands:
             - "~/.cache/pip"
 
 
-  install_dependencies:
-    description: Install all dependencies
-    parameters:
-      allowed_branch:
-        default: staging
-        type: string
-    steps:
-      - run:
-          name: Install dependencies
-          command: |
-            ./ci/install_dependencies.sh
 jobs:
-=======
-# os: linux
-# dist: ubuntu
-# language: python
-# cache: pip
-# python: 3.8
 
   test:
     docker:
@@ -100,7 +83,7 @@ jobs:
       - install_dependencies
       - run:
           name: Linting
-          command: cat /tmp/target_branch && . ./ci/find_changed_files.sh  "$(cat /tmp/target_branch)" && ./ci/cfn_lint.sh
+          command: . ./ci/find_changed_files.sh  "$(cat /tmp/target_branch)" && ./ci/cfn_lint.sh
 
   build:
     docker:
@@ -169,21 +152,6 @@ jobs:
                 exit 1
             fi
 
-            if [[ $target_branch = master ]]
-            then
-                echo Deploying bastion ...
-                ci/deploy.sh bastion
-                echo Deploying prod ...
-                ci/deploy.sh prod
-            elif [[ $target_branch = staging ]]
-            then
-                echo Deploying staging ...
-                ci/deploy.sh staging
-            else
-                echo Can only deploy master or staging. Exiting.
-                exit 1
-            fi
-
 workflows:
     version: 2
     test-build-deploy:
@@ -196,3 +164,4 @@ workflows:
             requires:
               - test
               - build
+
