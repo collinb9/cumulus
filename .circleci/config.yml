@@ -89,7 +89,7 @@ jobs:
             target_branch="$(cat /tmp/target_branch)"
             pr_or_push="$(cat /tmp/pr_or_push)"
 
-            if [$target_branch = master]
+            if [[ $target_branch = master ]]
             then
                 echo Building bastion ...
                 ENVIRONMENT=bastion ./ci/test_sam_workflow_pr.sh master
