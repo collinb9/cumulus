@@ -52,24 +52,6 @@ version: 2.1
 
 commands:
 
-  save_exit_code:
-    description: Save status code to a file to be read later
-    parameters:
-      exit_code:
-        type: integer
-        default: 0
-    steps:
-      - attach_workspace:
-          at: /tmp/
-      - run:
-          name: Save exit code
-          command: |
-            echo <<parameters.exit_code>> > /tmp/exit_code
-      - persist_to_workspace:
-          root: /
-          paths:
-            - tmp/exit_status
-
   setup:
     description: Checkout & Get name of target branch
     steps:
@@ -102,12 +84,9 @@ commands:
             else
               echo "Build is not for a PR. Using current branch as the target branch"
               echo "$CIRCLE_BRANCH" > /tmp/target_branch
-
             fi
-      - save_exit_code:
-          exit_code: 1
 
-  check_is_pr:
+  pr_or_push:
     description: Check if the current build is happening because of a PR
     steps:
       - run:
@@ -116,45 +95,10 @@ commands:
             if [[ ! -z ${CIRCLE_PULL_REQUEST} ]]
             then
               echo "Build is for pr ${CIRCLE_PR_NUMBER}"
-              exit 0
+              echo "pr" > /tmp/pr_or_push
             else
               echo "Build is not for a PR"
-              exit 1
-            fi
-
-  check_is_push:
-    description: Check if the current build is happening because of a PR
-    steps:
-      - run:
-          name: Check if PR
-          command: |
-            if [[ ! -z ${CIRCLE_PULL_REQUEST} ]]
-            then
-              echo "Build is for pr ${CIRCLE_PULL_REQUEST}"
-              exit 1
-            else
-              echo "Build is not for a push to the branch"
-              exit 0
-            fi
-
-  check_branch:
-    description: Check if target branch is correct
-    parameters:
-      allowed_branch:
-        default: staging
-        type: string
-    steps:
-      - run:
-          name: Check target branch
-          command: |
-            target_branch="$(cat /tmp/target_branch)"
-            if [[  "$target_branch" = "<<parameters.allowed_branch>>" ]]
-            then
-              echo "Target branch ${target_branch} = <<parameters.allowed_branch>>. Continuing ..."
-              exit 0
-            else
-              echo "Target branch ${target_branch} != <<parameters.allowed_branch>>. Stopping."
-              exit 1
+              echo "push" > /tmp/pr_or_push
             fi
 
   install_dependencies:
@@ -173,7 +117,7 @@ commands:
 
 jobs:
 
-  lint:
+  test:
     docker:
       - image: cimg/python:3.8
     steps:
@@ -182,184 +126,83 @@ jobs:
           name: Linting
           command: . ./ci/find_changed_files.sh  "$(cat /tmp/target_branch)" && ./ci/cfn_lint.sh
 
-  build_staging:
+  build:
     docker:
       - image: cimg/python:3.8
-    environment:
-      ENVIRONMENT: staging
     steps:
-      - check_is_pr
+      - pr_or_push
       - setup
       - install_dependencies
-      - check_branch:
-          allowed_branch: staging
       - run:
-          name: Build Staging
-          command: ci/apply_sam_workflow_pr.sh staging
-      - save_exit_code:
-          exit_code: 0
-
-  build_bastion:
-    docker:
-      - image: cimg/python:3.8
-    environment:
-      ENVIRONMENT: bastion
-    steps:
-      - check_is_pr
-      - setup
-      - install_dependencies
-      - check_branch:
-          allowed_branch: master
-      - run:
-          name: Build Bastion
-          command: ci/test_sam_workflow_pr.sh master
-      - save_exit_code:
-          exit_code: 0
-
-  build_prod:
-    docker:
-      - image: cimg/python:3.8
-    environment:
-      ENVIRONMENT: prod
-    steps:
-      - check_is_pr
-      - setup
-      - install_dependencies
-      - check_branch:
-          allowed_branch: master
-      - run:
-          name: Build Prod
-          command: ci/test_sam_workflow_pr.sh master
-      - save_exit_code:
-          exit_code: 0
-
-  deploy_staging:
-    docker:
-      - image: cimg/python:3.8
-    environment:
-      ENVIRONMENT: staging
-    steps:
-      - check_is_push
-      - setup
-      - install_dependencies
-      - check_branch:
-          allowed_branch: staging
-      - run:
-          name: Deploy Staging
-          command: ci/deploy.sh staging
-      - save_exit_code:
-          exit_code: 0
-
-  deploy_bastion:
-    docker:
-      - image: cimg/python:3.8
-    environment:
-      ENVIRONMENT: bastion
-    steps:
-      - check_is_push
-      - setup
-      - install_dependencies
-      - check_branch:
-          allowed_branch: master
-      - run:
-          name: Deploy Bastion
-          command: ci/deploy.sh bastion
-      - save_exit_code:
-          exit_code: 0
-
-  deploy_prod:
-    docker:
-      - image: cimg/python:3.8
-    environment:
-      ENVIRONMENT: prod
-    steps:
-      - check_is_push
-      - setup
-      - install_dependencies
-      - check_branch:
-          allowed_branch: master
-      - run:
-          name: Deploy Prod
-          command: ci/deploy.sh prod
-      - save_exit_code:
-          exit_code: 0
-
-  determine_success_state:
-    docker:
-      - image: cimg/python:3.8
-    steps:
-      # - run:
-      #     name: Wait until jobs are finished
-      #     command: |
-      #       while [[ $(curl --location --request GET "https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/job" --header "Circle-Token: $CCI_TOKEN"| jq -r '.items[]|select(.name != "waiter")|.status' | grep -c "running") -gt 0 ]]
-      #         do
-      #           sleep 10
-      #         done
-      # - run: echo "All required jobs have now completed"
-      - attach_workspace:
-          at: /tmp/
-      - run:
-          name: Determine success
+          name: Build
           command: |
-            exit_status="$(cat /tmp/exit_status)"
-            if [[ "$exit_status" = 0 ]]
+            target_branch="$(cat /tmp/target_branch)"
+            pr_or_push="$(cat /tmp/pr_or_push)"
+
+            if [[ $target_branch = master ]]
             then
-              exit 0
+            echo Building bastion ...
+                ENVIRONMENT=bastion ./ci/test_sam_workflow_pr.sh master
+                echo Building prod ...
+                ENVIRONMENT=prod ./ci/test_sam_workflow_pr.sh master
+            elif [[ $target_branch = staging ]]
+            then
+                echo Building staging ...
+                ENVIRONMENT=staging ./ci/apply_sam_workflow_pr.sh staging
             else
-              exit 1
+            then
+                echo Can only build master or staging. Exiting.
+                exit 1
             fi
 
+  deploy:
+    docker:
+      - image: cimg/python:3.8
+    steps:
+      - pr_or_push
+      - setup
+      - install_dependencies
+      - run:
+          name: Deploy
+          command: |
+            target_branch="$(cat /tmp/target_branch)"
+            pr_or_push="$(cat /tmp/pr_or_push)"
+
+            if [[ $pr_or_push = pr ]]
+            then
+                echo Only deploy merges. Exiting.
+                exit 0
+            fi
+
+
+            if [[ $target_branch = master ]]
+            then
+                echo Deploying bastion ...
+                ci/deploy.sh bastion
+                echo Deploying prod ...
+                ci/deploy.sh prod
+            elif [[ $target_branch = staging ]]
+            then
+                echo Deploying staging ...
+                ci/deploy.sh staging
+            else
+            then
+                echo Can only deploy master or staging. Exiting.
+                exit 1
+            fi
 
 workflows:
     version: 2
     test-build-staging:
       jobs:
-        - lint
-            # filters:
-            #   branches:
-            #     only:
-            #       - master
-            #       - staging
-            #       - circleci
-#             filters:
-#               tags:
-#                 only: /^v\d+\.\d+\.\d+(-alpha\.\d+)?$/
-        - build_staging:
+        - test
+        - build:
             requires:
-              - lint
-        - determine_success_state:
+              - test
+        - deploy:
             requires:
-              - build_staging
-        - build_bastion:
-            requires:
-              - lint
-        - determine_success_state:
-            requires:
-              - build_bastion
-        - build_prod:
-            requires:
-              - lint
-        - determine_success_state:
-            requires:
-              - build_prod
-        - deploy_staging:
-            requires:
-              - lint
-        - determine_success_state:
-            requires:
-              - deploy_staging
-        - deploy_bastion:
-            requires:
-              - lint
-        - determine_success_state:
-            requires:
-              - deploy_bastion
-        - deploy_prod:
-            requires:
-              - lint
-        - determine_success_state:
-            requires:
-              - deploy_prod
+              - test
+              - build
 
 
 #   deploy:
