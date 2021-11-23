@@ -77,7 +77,7 @@ jobs:
 
   test:
     docker:
-      - image: cimg/python:3.8
+      - image: cimg/python:3.9
     steps:
       - setup
       - install_dependencies
@@ -87,7 +87,7 @@ jobs:
 
   build:
     docker:
-      - image: cimg/python:3.8
+      - image: cimg/python:3.9
     steps:
       - pr_or_push
       - setup
@@ -117,7 +117,7 @@ jobs:
 
   deploy:
     docker:
-      - image: cimg/python:3.8
+      - image: cimg/python:3.9
     steps:
       - pr_or_push
       - setup
