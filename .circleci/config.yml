@@ -79,7 +79,9 @@ jobs:
       - install_dependencies
       - run:
           name: Linting
-          command: . ./ci/find_changed_files.sh  "$(cat /tmp/target_branch)" && ./ci/cfn_lint.sh
+          command: |
+            python -m pip install cfn-lint
+            . ./ci/find_changed_files.sh  "$(cat /tmp/target_branch)" && ./ci/cfn_lint.sh
       - save_cache:
           key: python-requirements-V1-{{ checksum "dev_requirements.txt" }}
           paths:
