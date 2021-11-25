@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+# Install python
+sudo apt update && sudo apt upgrade -y
+sudo apt install software-properties-common
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt install python3.8
+python --version
+
 # AWS CLI
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip > /dev/null 2>&1
