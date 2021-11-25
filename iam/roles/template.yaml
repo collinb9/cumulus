@@ -240,6 +240,29 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/ReadOnlyAccess
 
+  ReadOnlyAccess:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ReadOnlyAccess-${TargetEnvironment}
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              AWS: !Join
+                - ":"
+                - - arn
+                  - !Ref AWS::Partition
+                  - "iam:"
+                  - Fn::FindInMap:
+                    - AccountId
+                    - !Ref SourceEnvironment
+                    - accountid
+                  - root
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/ReadOnlyAccess
+
   IAMAdminRole:
     Type: AWS::IAM::Role
     Properties:
@@ -311,6 +334,7 @@ Resources:
                       - bastion/*
       Roles:
         - Ref: DeveloperAccessRole
+
 
 Outputs:
 

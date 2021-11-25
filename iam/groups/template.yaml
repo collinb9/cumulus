@@ -225,4 +225,3 @@ Outputs:
           - ':'
           - - Ref: AWS::StackName
             - DevelopersArn
-
