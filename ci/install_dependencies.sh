@@ -4,9 +4,9 @@
 sudo apt update && sudo apt upgrade -y
 sudo apt install software-properties-common
 sudo add-apt-repository ppa:deadsnakes/ppa -y
-sudo apt install python3.8 -y
+sudo apt install python3.8 python3.8-venv -y
 
-python --version
+python3.8 --version
 
 # AWS CLI
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
