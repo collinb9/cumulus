@@ -1,9 +1,5 @@
 version: 2.1
 
-dependencies:
-  pre:
-    - ./ci/install_dependencies
-
 commands:
 
   setup:
@@ -66,28 +62,32 @@ commands:
           name: Install dependencies
           command: |
             ./ci/install_dependencies.sh
-            python -m pip install toml
-      - save_cache:
-          key: python-requirements-V1-{{ checksum "dev_requirements.txt" }}
-          paths:
-            - "~/.cache/pip"
+            venv/bin/python -m pip install toml
 
 
 jobs:
 
   test:
     docker:
-      - image: cimg/python:3.8
+      - image: cimg/python:3.9
     steps:
       - setup
       - install_dependencies
       - run:
           name: Linting
-          command: . ./ci/find_changed_files.sh  "$(cat /tmp/target_branch)" && ./ci/cfn_lint.sh
+          command: |
+            source venv/bin/activate
+            which python
+            python --version
+            . ./ci/find_changed_files.sh  "$(cat /tmp/target_branch)" && ./ci/cfn_lint.sh
+      - save_cache:
+          key: python-requirements-V1-{{ checksum "dev_requirements.txt" }}
+          paths:
+            - "~/.cache/pip"
 
   build:
     docker:
-      - image: cimg/python:3.8
+      - image: cimg/python:3.9
     steps:
       - pr_or_push
       - setup
@@ -97,6 +97,8 @@ jobs:
       - run:
           name: Build
           command: |
+            source venv/bin/activate
+            ./ci/aws_auth.sh
             target_branch="$(cat /tmp/target_branch)"
             pr_or_push="$(cat /tmp/pr_or_push)"
 
@@ -117,7 +119,7 @@ jobs:
 
   deploy:
     docker:
-      - image: cimg/python:3.8
+      - image: cimg/python:3.9
     steps:
       - pr_or_push
       - setup
@@ -127,6 +129,8 @@ jobs:
       - run:
           name: Deploy
           command: |
+            source venv/bin/activate
+            ./ci/aws_auth.sh
             target_branch="$(cat /tmp/target_branch)"
             pr_or_push="$(cat /tmp/pr_or_push)"
 

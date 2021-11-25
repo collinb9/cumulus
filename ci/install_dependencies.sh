@@ -15,8 +15,10 @@ sudo ~/sam-installation/install
 sam --version
 
 # cfn-nag
-gem install cfn-nag
+# gem install cfn-nag
 
 # Python packages
+python -m venv venv
+source venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -r dev_requirements.txt
