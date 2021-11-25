@@ -4,7 +4,7 @@
 sudo apt update && sudo apt upgrade -y
 sudo apt install software-properties-common
 sudo add-apt-repository ppa:deadsnakes/ppa -y
-sudo apt install python3.8 -y
+sudo apt install python3.8 python-is-python3 -y
 python --version
 
 # AWS CLI
