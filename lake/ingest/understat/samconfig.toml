@@ -38,6 +38,3 @@ s3_prefix="lake-ingest-understat-prod"
 capabilities=["CAPABILITY_NAMED_IAM", "CAPABILITY_AUTO_EXPAND"]
 parameter_overrides=["Environment=prod"]
 
-[default.local_invoke.parameters]
-event="events/sqs.json"
-parameter_overrides=["Environment=prod"]
