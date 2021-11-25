@@ -1,9 +1,5 @@
 version: 2.1
 
-dependencies:
-  pre:
-    - ./ci/install_dependencies
-
 commands:
 
   setup:
@@ -66,7 +62,7 @@ commands:
           name: Install dependencies
           command: |
             ./ci/install_dependencies.sh
-            venv/bin/python -m pip install toml
+            python -m pip install toml
 
 
 jobs:
@@ -101,6 +97,7 @@ jobs:
       - run:
           name: Build
           command: |
+            source venv/bin/activate
             target_branch="$(cat /tmp/target_branch)"
             pr_or_push="$(cat /tmp/pr_or_push)"
 
@@ -131,6 +128,7 @@ jobs:
       - run:
           name: Deploy
           command: |
+            source venv/bin/activate
             target_branch="$(cat /tmp/target_branch)"
             pr_or_push="$(cat /tmp/pr_or_push)"
 
