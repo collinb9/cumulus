@@ -68,8 +68,8 @@ commands:
 jobs:
 
   test:
-    docker:
-      - image: cimg/python:3.9
+    machine:
+      - image: ubuntu-2004:202111-01
     steps:
       - setup
       - install_dependencies
@@ -86,8 +86,8 @@ jobs:
             - "~/.cache/pip"
 
   build:
-    docker:
-      - image: cimg/python:3.9
+    machine:
+      - image: ubuntu-2004:202111-01
     steps:
       - pr_or_push
       - setup
@@ -118,8 +118,8 @@ jobs:
             fi
 
   deploy:
-    docker:
-      - image: cimg/python:3.9
+    machine:
+      - image: ubuntu-2004:202111-01
     steps:
       - pr_or_push
       - setup
