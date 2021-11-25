@@ -61,38 +61,7 @@ Resources:
               - Effect: Allow
                 Action: cloudformation:*
                 Resource: '*'
-        - PolicyName: ecr-public
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "s3:*"
-                  - "lambda:*"
-                  - "sqs:*"
-                  - "sns:*"
-                  - "cloudwatch:*"
-                  - "apigateway:*"
-                  - "batch:*"
-                  - "cloudfront:*"
-                  - "cloudtrail:*"
-                  - "cloudwatch:*"
-                  - "dynamodb:*"
-                  - "ecr:*"
-                  - "ecs:*"
-                  - "ec2:*"
-                  - "eventbridge:*"
-                  - "firehose:*"
-                  - "kinesis:*"
-                  - "glacier:*"
-                  - "glue:*"
-                  - "rds:*"
-                  - "redshift:*"
-                  - "route53:*"
-                  - "stepfunctions:*"
-                  - "ssm:*"
-                Resource: "*"
-        - PolicyName: "iam"
+        - PolicyName: resources
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
