@@ -1,0 +1,86 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Ingest data from understat.com into lake
+
+Parameters:
+  Environment:
+    Description: The account where the resources are being created
+    Type: String
+    Default: staging
+    AllowedValues:
+      - staging
+      - prod
+
+Resources:
+
+  CrawlerCheckpointTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: id
+        Type: String
+      TableName:
+        Fn::Sub: lake-ingest-understat-checkpoint-${Environment}
+
+  FirehoseProcessingLambda:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ../../../lambda/base/template.yaml
+      Parameters:
+        CodeUri: ../../lake/ingest/understat/firehose_transform/
+        Description: Process firehose payloads for understat data
+        FunctionName: understat-firehose-processing
+        Role:
+          Fn::GetAtt:
+            - FirehoseProcessingLambdaRole
+            - Arn
+        Timeout: 120
+
+  FirehoseProcessingLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: logs
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: arn:aws:logs:*:*:*
+
+  LeagueFeed:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./feed/template.yaml
+      Parameters:
+        Environment:
+          Ref: Environment
+        Feed: league
+        ProcessingLambdaArn:
+          Fn::GetAtt:
+            - FirehoseProcessingLambda
+            - Outputs.FunctionArn
+
+  MatchFeed:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./feed/template.yaml
+      Parameters:
+        Environment:
+          Ref: Environment
+        Feed: match
+        ProcessingLambdaArn:
+          Fn::GetAtt:
+            - FirehoseProcessingLambda
+            - Outputs.FunctionArn
+

@@ -2,6 +2,7 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
 Mappings:
+
   AccountId:
     staging:
       accountid: 626964907981
@@ -30,7 +31,7 @@ Resources:
                   - iam:CreateAccessKey
                   - iam:CreateVirtualMFADevice
                   - iam:EnableMFADevice
-                Resource: "*"
+                Resource: '*'
 
   Developers:
     Type: AWS::IAM::Group
@@ -46,26 +47,26 @@ Resources:
                 Action:
                   - sts:AssumeRole
                 Resource:
-                  - !Join
-                    - ":"
+                  - Fn::Join:
+                    - ':'
                     - - arn
-                      - !Ref AWS::Partition
-                      - "iam:"
+                      - Ref: AWS::Partition
+                      - 'iam:'
                       - Fn::FindInMap:
                         - AccountId
                         - staging
                         - accountid
-                      - "role/DeveloperAccess-staging"
-                  - !Join
-                    - ":"
+                      - role/DeveloperAccess-staging
+                  - Fn::Join:
+                    - ':'
                     - - arn
-                      - !Ref AWS::Partition
-                      - "iam:"
+                      - Ref: AWS::Partition
+                      - 'iam:'
                       - Fn::FindInMap:
                         - AccountId
                         - prod
                         - accountid
-                      - "role/ReadOnlyAccess-prod"
+                      - role/ReadOnlyAccess-prod
 
   Deployers:
     Type: AWS::IAM::Group
@@ -81,26 +82,26 @@ Resources:
                 Action:
                   - sts:AssumeRole
                 Resource:
-                  - !Join
-                    - ":"
+                  - Fn::Join:
+                    - ':'
                     - - arn
-                      - !Ref AWS::Partition
-                      - "iam:"
+                      - Ref: AWS::Partition
+                      - 'iam:'
                       - Fn::FindInMap:
                         - AccountId
                         - staging
                         - accountid
-                      - "role/DeveloperAccess-staging"
-                  - !Join
-                    - ":"
+                      - role/DeveloperAccess-staging
+                  - Fn::Join:
+                    - ':'
                     - - arn
-                      - !Ref AWS::Partition
-                      - "iam:"
+                      - Ref: AWS::Partition
+                      - 'iam:'
                       - Fn::FindInMap:
                         - AccountId
                         - prod
                         - accountid
-                      - "role/DeveloperAccess-prod"
+                      - role/DeveloperAccess-prod
 
   IAMAdmins:
     Type: AWS::IAM::Group
@@ -116,87 +117,112 @@ Resources:
                 Action:
                   - sts:AssumeRole
                 Resource:
-                  - !Join
-                    - ":"
+                  - Fn::Join:
+                    - ':'
                     - - arn
-                      - !Ref AWS::Partition
-                      - "iam:"
+                      - Ref: AWS::Partition
+                      - 'iam:'
                       - Fn::FindInMap:
                         - AccountId
                         - bastion
                         - accountid
-                      - "role/IAMAdmin-bastion"
+                      - role/IAMAdmin-bastion
 
 Outputs:
 
   IAMAdminsName:
-    Value: !Ref IAMAdmins
+    Value:
+      Ref: IAMAdmins
     Description: Name of the IAMAdmins group
     Export:
-      Name: !Join
-        - ":"
-        - - !Ref "AWS::StackName"
-          - IAMAdminsName
+      Name:
+        Fn::Join:
+          - ':'
+          - - Ref: AWS::StackName
+            - IAMAdminsName
 
   IAMAdminsArn:
-    Value: !GetAtt IAMAdmins.Arn
+    Value:
+      Fn::GetAtt:
+        - IAMAdmins
+        - Arn
     Description: Arn of the IAMAdmins group
     Export:
-      Name: !Join
-        - ":"
-        - - !Ref "AWS::StackName"
-          - IAMAdminsArn
+      Name:
+        Fn::Join:
+          - ':'
+          - - Ref: AWS::StackName
+            - IAMAdminsArn
 
   DeployersName:
-    Value: !Ref Deployers
+    Value:
+      Ref: Deployers
     Description: Name of the Deployers group
     Export:
-      Name: !Join
-        - ":"
-        - - !Ref "AWS::StackName"
+      Name:
+        Fn::Join:
+        - ':'
+        - - Ref: AWS::StackName
           - DeployersName
 
   DeployersArn:
-    Value: !GetAtt Deployers.Arn
+    Value:
+      Fn::GetAtt:
+        - Deployers
+        - Arn
     Description: Arn of the Deployers group
     Export:
-      Name: !Join
-        - ":"
-        - - !Ref "AWS::StackName"
-          - DeployersArn
+      Name:
+        Fn::Join:
+          - ':'
+          - - Ref: AWS::StackName
+            - DeployersArn
 
   BaseUsersName:
-    Value: !Ref BaseUsers
+    Value:
+      Ref: BaseUsers
     Description: Name of the BaseUsers group
     Export:
-      Name: !Join
-        - ":"
-        - - !Ref "AWS::StackName"
-          - BaseUsersName
+      Name:
+        Fn::Join:
+          - ':'
+          - - Ref: AWS::StackName
+            - BaseUsersName
 
   BaseUsersArn:
-    Value: !GetAtt BaseUsers.Arn
+    Value:
+      Fn::GetAtt:
+        - BaseUsers
+        - Arn
     Description: Arn of the BaseUsers group
     Export:
-      Name: !Join
-        - ":"
-        - - !Ref "AWS::StackName"
-          - BaseUsersArn
+      Name:
+        Fn::Join:
+          - ':'
+          - - Ref: AWS::StackName
+            - BaseUsersArn
 
   DevelopersName:
-    Value: !Ref Developers
+    Value:
+      Ref: Developers
     Description: Name of the Developers group
     Export:
-      Name: !Join
-        - ":"
-        - - !Ref "AWS::StackName"
-          - DevelopersName
+      Name:
+        Fn::Join:
+          - ':'
+          - - Ref: AWS::StackName
+            - DevelopersName
 
   DevelopersArn:
-    Value: !GetAtt Developers.Arn
+    Value:
+      Fn::GetAtt:
+        - Developers
+        - Arn
     Description: Arn of the Developers group
     Export:
-      Name: !Join
-        - ":"
-        - - !Ref "AWS::StackName"
-          - DevelopersArn
+      Name:
+        Fn::Join:
+          - ':'
+          - - Ref: AWS::StackName
+            - DevelopersArn
+
