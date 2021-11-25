@@ -13,6 +13,8 @@ Parameters:
 
 Resources:
 
+  #################################### Crawler
+
   CrawlerCheckpointTable:
     Type: AWS::Serverless::SimpleTable
     Properties:
@@ -21,6 +23,8 @@ Resources:
         Type: String
       TableName:
         Fn::Sub: lake-ingest-understat-checkpoint-${Environment}
+
+  #################################### Firehose
 
   FirehoseProcessingLambda:
     Type: AWS::Serverless::Application
@@ -57,6 +61,8 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: arn:aws:logs:*:*:*
+
+  #################################### Feeds
 
   LeagueFeed:
     Type: AWS::Serverless::Application
