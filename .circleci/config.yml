@@ -98,6 +98,7 @@ jobs:
           name: Build
           command: |
             source venv/bin/activate
+            ./ci/aws_auth.sh
             target_branch="$(cat /tmp/target_branch)"
             pr_or_push="$(cat /tmp/pr_or_push)"
 
@@ -129,6 +130,7 @@ jobs:
           name: Deploy
           command: |
             source venv/bin/activate
+            ./ci/aws_auth.sh
             target_branch="$(cat /tmp/target_branch)"
             pr_or_push="$(cat /tmp/pr_or_push)"
 
