@@ -1,0 +1,25 @@
+#!/usr/bin/env sh
+
+org=$1
+project=$2
+github_token=$3
+pr_number=$4
+
+if [ -n "$4" ]; then
+    curl -L "https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64" \
+      -o jq
+    chmod +x jq
+    url="https://api.github.com/repos/${org}/${project}/pulls/${pr_number}?access_token=${github_token}"
+    TARGET_BRANCH=$(\
+        curl https://api.github.com/repos/collinb9/cumulus/pulls/47 \
+        -H "Authorization: $github_token" \
+            | ./jq '.base.ref' \
+            | tr -d '"'\
+        )
+    git config user.name $github_username
+    git config user.email $github_email
+    echo git pull origin $target_branch
+    echo $TARGET_BRANCH
+else
+    echo No PR to build
+fi

@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 
-if [ -z "$TRAVIS_BRANCH" ]
+branch=$1
+
+if [ -z "$branch" ]
 then
-    echo "No TRAVIS_BRANCH, using existing BRANCH"
-else
-    export BRANCH=$TRAVIS_BRANCH
+    echo "No branch given"
+    exit 1
 fi
-echo $BRANCH
-export CHANGED_FILES=`git diff --name-only --diff-filter=d origin/${BRANCH} | tr '\n' ' '`
+
+echo Branch - $branch
+export CHANGED_FILES=`git diff --name-only --diff-filter=d origin/${branch} | tr '\n' ' '`
 echo $CHANGED_FILES
-export CHANGED_TEMPLATES=`git diff --name-only --diff-filter=d origin/${BRANCH} | grep -E 'template.yaml' | tr '\n' ' '`
+export CHANGED_TEMPLATES=`git diff --name-only --diff-filter=d origin/${branch} | grep -E 'template.yaml' | tr '\n' ' '`
 echo $CHANGED_TEMPLATES
