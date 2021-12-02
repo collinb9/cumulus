@@ -17,7 +17,12 @@ region="eu-west-1"
 s3_bucket="564188978527-artefacts-bastion"
 s3_prefix="lake-ingest-understat-staging"
 capabilities=["CAPABILITY_NAMED_IAM", "CAPABILITY_AUTO_EXPAND"]
-parameter_overrides=["Environment=staging"]
+parameter_overrides=[
+    "Environment=staging",
+    "RegistryAlias=e8e9g5w6",
+    "ImageTag=v0.1.2-alpha.3",
+    "ImageName=understat-crawler"
+]
 
 [prod.build.parameters]
 profile="prod"
@@ -36,5 +41,11 @@ region="eu-west-1"
 s3_bucket="564188978527-artefacts-bastion"
 s3_prefix="lake-ingest-understat-prod"
 capabilities=["CAPABILITY_NAMED_IAM", "CAPABILITY_AUTO_EXPAND"]
-parameter_overrides=["Environment=prod"]
+parameter_overrides=[
+    "Environment=prod",
+    "RegistryAlias=e8e9g5w6",
+    "JobDefinitionName=understat-crawler",
+    "ImageTag=v0.1.2-alpha.3",
+    "ImageName=understat-crawler"
+]
 

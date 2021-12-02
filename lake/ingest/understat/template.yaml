@@ -3,6 +3,7 @@ Transform: AWS::Serverless-2016-10-31
 Description: Ingest data from understat.com into lake
 
 Parameters:
+
   Environment:
     Description: The account where the resources are being created
     Type: String
@@ -10,6 +11,26 @@ Parameters:
     AllowedValues:
       - staging
       - prod
+
+  LogRetentionInDays:
+    Type: Number
+    Default: 7
+
+  RegistryAlias:
+    Type: String
+    Description: Alias for ecr public registry containing the image
+
+  ImageName:
+    Type: String
+    Description: Name of the image
+
+  ImageTag:
+    Type: String
+    Description: Tag of the image
+
+  JobDefinitionName:
+    Type: String
+    Description: Name of the batch job definition
 
 Resources:
 
@@ -89,4 +110,223 @@ Resources:
           Fn::GetAtt:
             - FirehoseProcessingLambda
             - Outputs.FunctionArn
+
+  #################################### Batch
+
+  BatchServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+            Service: batch.amazonaws.com
+            Action: sts:AssumeRole
+            ManagedPolicyArns:
+              # TODO: Use a custom role
+              - arn:aws:iam::aws:policy/service-role/AWSBatchServiceRole
+
+  IamInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - Ref: EcsInstanceRole
+
+  EcsInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2008-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+            Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+        # TODO: Use custom role(s)
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
+          - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+
+  ComputeEnvironment:
+    Type: AWS::Batch::ComputeEnvironment
+    Properties:
+      ComputeEnvironmentName: managed-spotinstance-environment-${Environment}
+      Type: MANAGED
+      State: ENABLED
+      ComputeResources:
+        Type: EC2
+        MinvCpus: 0
+        DesiredvCpus: 0
+        MaxvCpus: 8
+        Subnets:
+          # TODO
+          - Ref: PrivateSubnet
+        SecurityGroupIds:
+          # TODO
+          - Ref: SecurityGroup
+        ServiceRole: !Ref BatchServiceRole
+
+#ComputeEnvironment:
+#Type: AWS::Batch::ComputeEnvironment
+#Properties:
+#Type: MANAGED
+#ComputeResources:
+#Type: EC2
+#MinvCpus: 0
+#DesiredvCpus: 0
+#MaxvCpus: 32
+#InstanceTypes:
+##- a1.medium
+##        - optimal
+##                Subnets:
+##                        - Ref: Subnet
+##                                SecurityGroupIds:
+##                                        - Ref: SecurityGroup
+##                                                InstanceRole:
+##                                                          Ref: IamInstanceProfile
+##                                                                ServiceRole:
+##                                                                        Ref: BatchServiceRole
+
+
+#  BatchProcessingJobDefinition:
+#    Type: AWS::Batch::JobDefinition
+#    Properties:
+#      ContainerProperties:
+#        Command:
+#          # TODO: Edit this when everything is working
+#          - python
+#          - app/main.py
+#          - --start-season
+#          - "2021"
+#        Environment:
+#          - ENVIRONMENT: !Ref Environment
+#          - DYNAMODB_TABLE: TODO
+#          - LOG_LEVEL: TODO
+#        # ExecutionRoleArn:  !GetAtt BatchTaskExecutionRole.Arn
+#        Image: !Sub public.ecr.aws/${RegistryAlias}/${ImageName}:${ImageTag}
+#        InstanceType: t2.micro #TODO Check this
+#        # JobRoleArn: !GetAtt BatchTaskExecutionRole.Arn
+#        LogConfiguration:
+#          LogDriver:  awslogs
+#          Options:
+#          awslogs-group: !Ref 'BatchLogGroup'
+#          awslogs-region: !Ref AWS::Region
+#          awslogs-stream-prefix: !Sub ${StackName}-logs
+#      Command:
+#        ResourceRequirements:
+#          - Type: VCPU
+#            Value: 1
+#          - Type: MEMORY
+#            Value: 128
+#      JobDefinitionName: !Sub ${JobDefinitionName}-job-definition-${Environment}
+#      PlatformCapabilities:
+#        - EC2
+#      RetryStrategy:
+#        Attempts: 2
+#      Timeout: 3600
+#      Type: container
+
+
+#    Type: AWS::Batch::JobDefinition
+#    Properties:
+#      Type: container
+#      PropagateTags: true
+#      JobDefinitionName: BatchJobDefinition
+#      ContainerProperties:
+#      Image:
+#      Fn::Join:
+#      - ''
+#      - - Ref: AWS::AccountId
+#      - .dkr.ecr.
+#      - Ref: AWS::Region
+#      - !Sub '.amazonaws.com/${StackName}-repository:latest'
+#      FargatePlatformConfiguration:
+#      PlatformVersion: LATEST
+#      ResourceRequirements:
+#      - Value: 0.25
+#      Type: VCPU
+#      - Value: 512
+#      Type: MEMORY
+#      JobRoleArn:  !GetAtt 'BatchTaskExecutionRole.Arn'
+#      ExecutionRoleArn:  !GetAtt 'BatchTaskExecutionRole.Arn'
+#        - python
+#        - app/main.py
+#      PlatformCapabilities:
+#        - EC2
+#      Tags:
+#      Service: Batch
+#      Name: JobDefinitionTag
+#      Expected: MergeTag
+
+#  BatchLogGroup:
+#    Type: AWS::Logs::LogGroup
+#    Properties:
+#      RetentionInDays: !Ref LogRetentionInDays
+#      LogGroupName: !Sub /aws/batch/${AWS::StackName}
+
+#  # BatchTaskExecutionRole:
+#  #   Type: AWS::IAM::Role
+#  #   Properties:
+#  #     RoleName: !Sub ${StackName}-taskexec-role
+#  #     AssumeRolePolicyDocument:
+#  #       Statement:
+#  #         - Effect: Allow
+#  #           Principal:
+#  #           Service: [ecs-tasks.amazonaws.com]
+#  #           Action: ['sts:AssumeRole']
+#  #     Policies:
+#  #       - PolicyName: ecr-public
+#  #         PolicyDocument:
+#  #           Statement:
+#  #             - Effect: Allow
+#  #               Action:
+#  #                 - ecr-public:GetAuthorizationToken
+#  #                 - ecr-public:BatchCheckLayerAvailability
+#  #                 - ecr-public:GetDownloadUrlForLayer
+#  #                 - ecr-public:BatchGetImage
+#  #                 - logs:CreateLogGroup
+#  #                 - logs:CreateLogStream
+#  #                 - logs:PutLogEvents
+#  #               Resource: arn:aws:logs:*:*:*
+#  #       - PolicyName: firehose
+#  #         PolicyDocument:
+#  #           Statement:
+#  #             - Effect: Allow
+#  #               Action:
+#  #                 - s3:PutObject
+#  #                 - s3:GetObject
+#  #                 - s3:ListBucket
+#  #               Resource:
+#  #                 - !Join
+#  #                 - ''
+#  #                 - - 'arn:aws:s3:::'
+#  #                 - !Sub "${StackName}-${AWS::AccountId}"
+#  #                 - !Join
+#  #                 - ''
+#  #                 - - 'arn:aws:s3:::'
+#  #                 - !Sub "${StackName}-${AWS::AccountId}"
+#  #                 - /*
+#  #       - PolicyName: dynamodb
+#  #         PolicyDocument:
+#  #           Statement:
+#  #             - Effect: Allow
+#  #               Action:
+#  #                 - dynamodb:PutItem
+#  #                 - dynamodb:GetItem
+#  #               Resource: TODO
+#  #                 # !Join
+#  #                 # - ''
+#  #                 # - - 'arn:aws:dynamodb:'
+#  #                 # - !Sub "${AWS::Region}:${AWS::AccountId}:table/${StackName}"
+
+#  BatchProcessingJobQueue:
+#    Type: AWS::Batch::JobQueue
+#    Properties:
+#      JobQueueName: !Sub "ingest-understat-batch-queue-${Environment}"
+#      State: ENABLED
+#      Priority: 1
+#      ComputeEnvironmentOrder:
+#        - Order: 1
+#      ComputeEnvironment: !Ref ComputeEnvironment
 
