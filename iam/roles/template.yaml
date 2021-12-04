@@ -245,6 +245,7 @@ Resources:
                   - "ssm:*"
                   - "s3:*"
                   - "ecr-public:*"
+                  - "sts:GetServiceBearerToken"
                 Resource: "*"
 
   ########################### shared policies
