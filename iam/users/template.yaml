@@ -8,6 +8,7 @@ Parameters:
     Default: /iam/user/brendan-default-password
 
 Resources:
+
   brendan:
     Type: AWS::IAM::User
     Properties:
@@ -16,17 +17,18 @@ Resources:
         - IAMAdmins
         - BaseUsers
       LoginProfile:
-        Password: !Join
-          - ''
-          - - '{'
-            - '{'
-            - 'resolve:'
-            - 'ssm-secure:'
-            - !Ref BrendanDefaultPassword
-            - ':'
-            - '1'
-            - '}'
-            - '}'
+        Password:
+          Fn::Join:
+            - ''
+            - - '{'
+              - '{'
+              - 'resolve:'
+              - 'ssm-secure:'
+              - Ref: BrendanDefaultPassword
+              - ':'
+              - '1'
+              - '}'
+              - '}'
         PasswordResetRequired: true
       UserName: brendan
 
@@ -38,3 +40,4 @@ Resources:
         - IAMAdmins
         - BaseUsers
       UserName: cicd
+

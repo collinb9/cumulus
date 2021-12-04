@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+# Install python
+sudo apt update && sudo apt upgrade -y
+sudo apt install software-properties-common
+sudo add-apt-repository ppa:deadsnakes/ppa -y
+sudo apt install python3.8 python3.8-venv -y
+
+python3.8 --version
+
 # AWS CLI
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip > /dev/null 2>&1
@@ -18,7 +26,7 @@ sam --version
 # gem install cfn-nag
 
 # Python packages
-python -m venv venv
+python3.8 -m venv venv
 source venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -r dev_requirements.txt
