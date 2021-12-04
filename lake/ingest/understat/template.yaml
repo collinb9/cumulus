@@ -136,60 +136,60 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
         - arn:aws:iam::aws:policy/AmazonKinesisFirehoseFullAccess
 
-  # SpotFleetRole:
-  #   Type: AWS::IAM::Role
-  #   Properties:
-  #     AssumeRolePolicyDocument:
-  #       Version: '2008-10-17'
-  #       Statement:
-  #         - Effect: Allow
-  #           Principal:
-  #             Service: spotfleet.amazonaws.com
-  #           Action: sts:AssumeRole
-  #     ManagedPolicyArns:
-  #       - arn:aws:iam::aws:policy/AmazonEC2SpotFleetTaggingRole
+  SpotFleetRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2008-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: spotfleet.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSServiceRoleForEC2SpotFleet
 
-  # AWSBatchServiceRole:
-  #   Type: AWS::IAM::Role
-  #   Properties:
-  #     AssumeRolePolicyDocument:
-  #       Version: '2012-10-17'
-  #       Statement:
-  #         - Effect: Allow
-  #           Principal:
-  #             Service: batch.amazonaws.com
-  #             Action: sts:AssumeRole
-  #             ManagedPolicyArns:
-  #               # TODO: Use a custom role
-  #               - arn:aws:iam::aws:policy/service-role/AWSBatchServiceRole
+  AWSBatchServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: batch.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        # TODO: Use a custom role
+        - arn:aws:iam::aws:policy/service-role/AWSBatchServiceRole
 
-  # ComputeEnvironment:
-  #   Type: AWS::Batch::ComputeEnvironment
-  #   Properties:
-  #     ComputeEnvironmentName: !Sub managed-ec2-environment-${Environment}
-  #     ComputeResources:
-  #       # AllocationStrategy: SPOT_CAPACITY_OPTIMIZED
-  #       BidPercentage: 50
-  #       InstanceRole: !GetAtt IamInstanceProfile.Arn
-  #       InstanceTypes:
-  #         - t2.micro
-  #       MaxvCpus: 8
-  #       MinvCpus: 0
-  #       Subnets:
-  #         - Fn::ImportValue:
-  #             !Sub ec2-vpc-${Environment}:PublicSubnet1
-  #         - Fn::ImportValue:
-  #             !Sub ec2-vpc-${Environment}:PublicSubnet2
-  #         - Fn::ImportValue:
-  #             !Sub ec2-vpc-${Environment}:PublicSubnet3
-  #       SecurityGroupIds:
-  #         - Fn::ImportValue:
-  #             !Sub ec2-vpc-${Environment}:NoIngressSecurityGroup
-  #       SpotIamFleetRole: !GetAtt SpotFleetRole.Arn
-  #       Type: SPOT
-  #     ServiceRole: !GetAtt AWSBatchServiceRole.Arn
-  #     State: ENABLED
-  #     Type: MANAGED
+  ComputeEnvironment:
+    Type: AWS::Batch::ComputeEnvironment
+    Properties:
+      ComputeEnvironmentName: !Sub managed-ec2-environment-${Environment}
+      ComputeResources:
+        # AllocationStrategy: SPOT_CAPACITY_OPTIMIZED
+        BidPercentage: 50
+        InstanceRole: !GetAtt IamInstanceProfile.Arn
+        InstanceTypes:
+          - t2.micro
+        MaxvCpus: 8
+        MinvCpus: 0
+        Subnets:
+          - Fn::ImportValue:
+              !Sub ec2-vpc-${Environment}:PublicSubnet1
+          - Fn::ImportValue:
+              !Sub ec2-vpc-${Environment}:PublicSubnet2
+          - Fn::ImportValue:
+              !Sub ec2-vpc-${Environment}:PublicSubnet3
+        SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub ec2-vpc-${Environment}:NoIngressSecurityGroup
+        SpotIamFleetRole: !GetAtt SpotFleetRole.Arn
+        Type: SPOT
+      ServiceRole: !GetAtt AWSBatchServiceRole.Arn
+      State: ENABLED
+      Type: MANAGED
 
 #ComputeEnvironment:
 #Type: AWS::Batch::ComputeEnvironment
