@@ -244,6 +244,7 @@ Resources:
                   - "iam:*"
                   - "ssm:*"
                   - "s3:*"
+                  - "ecr-public:*"
                 Resource: "*"
 
   ########################### shared policies
