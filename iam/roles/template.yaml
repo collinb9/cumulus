@@ -183,6 +183,8 @@ Resources:
                   - iam:ListUserTags
                   - iam:PutRolePolicy
                   - iam:PassRole
+                  - iam:CreateInstanceProfile
+                  - iam:AddRoleToInstanceProfile
                 Resource: '*'
 
   ReadOnlyAccess:

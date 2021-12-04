@@ -20,7 +20,7 @@ capabilities=["CAPABILITY_NAMED_IAM", "CAPABILITY_AUTO_EXPAND"]
 parameter_overrides=[
     "Environment=staging",
     "RegistryAlias=e8e9g5w6",
-    "ImageTag=v0.1.2-alpha.3",
+    "ImageTag=v0.1.2-alpha.6",
     "ImageName=understat-crawler"
 ]
 
@@ -45,7 +45,7 @@ parameter_overrides=[
     "Environment=prod",
     "RegistryAlias=e8e9g5w6",
     "JobDefinitionName=understat-crawler",
-    "ImageTag=v0.1.2-alpha.3",
+    "ImageTag=v0.1.2-alpha.6",
     "ImageName=understat-crawler"
 ]
 
