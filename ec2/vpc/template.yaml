@@ -303,6 +303,7 @@ Resources:
       SubnetId: !Ref PrivateSubnet3
 
   ################################### Security groups
+
   NoIngressSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
