@@ -56,6 +56,16 @@ Resources:
                         - staging
                         - accountid
                       - "role/DeveloperAccess-staging"
+                  # - !Join
+                  #   - ":"
+                  #   - - arn
+                  #     - !Ref AWS::Partition
+                  #     - "iam:"
+                  #     - Fn::FindInMap:
+                  #       - AccountId
+                  #       - prod
+                  #       - accountid
+                  #     - "role/ReadOnlyAccess-prod"
                   - !Join
                     - ":"
                     - - arn
@@ -75,7 +85,7 @@ Resources:
                         - AccountId
                         - prod
                         - accountid
-                      - "role/ReadOnlyAccess-prod"
+                      - "role/DeveloperAccess-prod"
 
   Administrators:
     Type: AWS::IAM::Group

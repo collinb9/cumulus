@@ -12,9 +12,6 @@ Parameters:
       - staging
       - prod
 
-  # ECSAMI:
-  #   Description: AMI ID
-  #   Type: String
 
 Conditions:
   IsProd: !Equals [ !Ref Environment, prod ]
