@@ -1,0 +1,20 @@
+version=0.1
+
+[bastion.build.parameters]
+profile="bastion"
+use_container=true
+skip_pull_image=true
+
+[bastion.package.parameters]
+profile="bastion"
+s3_bucket="564188978527-artefacts-bastion"
+s3_prefix="mlflow-ecr-bastion"
+
+[bastion.deploy.parameters]
+profile="bastion"
+stack_name="mlflow-ecr-bastion"
+region="us-east-1"
+s3_bucket="564188978527-artefacts-bastion"
+s3_prefix="mlflow-ecr-bastion"
+capabilities=["CAPABILITY_NAMED_IAM", "CAPABILITY_AUTO_EXPAND"]
+parameter_overrides=["Environment=bastion"]

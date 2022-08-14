@@ -1,0 +1,384 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >-
+  Deploy Mlflow as an ECS service, along with all its required resources.
+
+Parameters:
+
+  Environment:
+    Description: The account where the resources are being created
+    Type: String
+    Default: staging
+    AllowedValues:
+      - staging
+      - prod
+
+  # MlflowImageUrl:
+  #   Type: String
+  #   Description: The url of the Mlflow docker image to deploy.
+
+  # MlflowContainerCpu:
+  #   Type: Number
+  #   Default: 128
+  #   Description: How much CPU to give the container. 1024 is 1 CPU.
+
+  # MlflowContainerMemory:
+  #   Type: Number
+  #   Default: 512
+  #   Description: How much memory in megabytes to give the container.
+
+Conditions:
+  IsProd: !Equals [ !Ref Environment, prod ]
+
+Resources:
+
+
+###############################################################################
+# \/                        Postgres database                              \/ #
+###############################################################################
+
+  MlflowDBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: !Ref AWS::StackName
+      DBSubnetGroupName: !Sub mlflow-${Environment}
+      SubnetIds:
+        !If
+          - IsProd
+          -
+            - Fn::ImportValue: !Sub ec2-vpc-${Environment}:PublicSubnet1
+            - Fn::ImportValue: !Sub ec2-vpc-${Environment}:PublicSubnet2
+            # - Fn::ImportValue: !Sub ec2-vpc-${Environment}:PublicSubnet3
+          -
+            - Fn::ImportValue: !Sub ec2-vpc-${Environment}:PublicSubnet1
+            - Fn::ImportValue: !Sub ec2-vpc-${Environment}:PublicSubnet2
+
+  MlflowAccessSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub mlflow-db-access-${Environment}
+      GroupDescription: Security group for mlflow access
+      VpcId:
+        Fn::ImportValue:
+          !Sub ec2-vpc-${Environment}:VPC
+
+  MlflowDBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub mlflow-db-${Environment}
+      GroupDescription: Security group for mlflow database
+      VpcId:
+        Fn::ImportValue:
+          !Sub ec2-vpc-${Environment}:VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref MlflowAccessSecurityGroup
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+  MlflowDBSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: Admin password for mlflow db instance
+      GenerateSecretString:
+        ExcludePunctuation: true
+        PasswordLength: 16
+        SecretStringTemplate: '{"username":"admin"}'
+        GenerateStringKey: password
+      Name: !Sub mlflow-secret-${Environment}
+
+  MlflowDBInstance:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Snapshot # default
+    UpdateReplacePolicy: Snapshot
+    Properties:
+      AllocatedStorage: !If
+        - IsProd
+        - 10
+        - 5
+      AllowMajorVersionUpgrade: false
+      AutoMinorVersionUpgrade: true
+      BackupRetentionPeriod: 14
+      CopyTagsToSnapshot: true
+      DBInstanceClass: db.t4g.micro
+      DBInstanceIdentifier: !Sub mlflow-db-${Environment}
+      DBSnapshotIdentifier: ""
+      DBSubnetGroupName: !Ref MlflowDBSubnetGroup
+      EnableIAMDatabaseAuthentication: true
+      Engine: postgres
+      EngineVersion: 14.2
+      MasterUsername: master
+      MasterUserPassword: !Join
+        - ':'
+        - - '{{resolve:secretsmanager'
+          - !Ref MlflowDBSecret
+          - 'SecretString:password}}'
+      MultiAZ: false
+      Port: 5432
+      PreferredBackupWindow: 01:00-02:59
+      PreferredMaintenanceWindow: Mon:03:00-Mon:05:00
+      PubliclyAccessible: true
+      StorageType: standard
+      VPCSecurityGroups:
+        - !Ref MlflowDBSecurityGroup
+        - Fn::ImportValue: !Sub ec2-vpc-${Environment}:HomeSecurityGroup
+      Tags:
+        - Key: project
+          Value: mlflow
+
+  MlflowUserDBSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: Admin password for mlflow_flow user in mlflow db instance
+      GenerateSecretString:
+        ExcludePunctuation: true
+        PasswordLength: 16
+        SecretStringTemplate: '{"username":"mlflow_user"}'
+        GenerateStringKey: password
+      Name: !Sub mlflow-user-secret-${Environment}
+
+###############################################################################
+# \/              Mlflow S3 bucket & access role configuration             \/ #
+###############################################################################
+
+  MlflowBucket:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ../s3/base/template.yaml
+      Parameters:
+        Environment: !Ref Environment
+        BucketName: mlflow
+
+  MlflowRole:
+    Type: AWS::IAM::Role
+    DependsOn:
+      - MlflowBucket
+    Properties:
+      RoleName : !Sub "mlflow-${Environment}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ecs-tasks.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: ecs
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cloudwatch:DescribeAlarmsForMetric
+                  - cloudwatch:ListMetrics
+                  - cloudwatch:GetMetricStatistics
+                  - cloudwatch:GetMetricData
+                  - ec2:DescribeTags
+                  - ec2:DescribeInstances
+                  - ec2:DescribeRegions
+                  - tag:GetResources
+                Resource: "*"
+        - PolicyName: mlflow-bucket
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:*
+                Resource:
+                  - !GetAtt MlflowBucket.Arn
+                  - Fn::Join:
+                    - "/"
+                    - - !GetAtt MlflowBucket.Arn
+                      - "*"
+
+###############################################################################
+# /\              Mlflow S3 bucket & access role configuration             /\ #
+#                                                                             #
+# \/                 Mlflow load-balancer configuration                    \/ #
+###############################################################################
+
+  ECSSecurityGroupRuleAdd:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      IpProtocol: tcp
+      FromPort: 0
+      ToPort: 65535
+      SourceSecurityGroupId: !GetAtt MlflowAccessSecurityGroup.GroupId
+      GroupId:
+        Fn::ImportValue: !Sub "EcsHostSecurityGroup-${Environment}"
+
+  # MlflowLoadBalancer:
+  #   Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+  #   Properties:
+  #     Name: !Sub "mlflow-${Environment}"
+  #     Scheme: internet-facing
+  #     Type: application
+  #     Subnets:
+          # !If
+          #   - IsProd
+          #   - - Fn::ImportValue: !Sub ec2-vpc-${Environment}:PublicSubnet1
+          #     - Fn::ImportValue: !Sub ec2-vpc-${Environment}:PublicSubnet2
+          #   - - Fn::ImportValue: !Sub ec2-vpc-${Environment}:PublicSubnet1
+  #     SecurityGroups:
+  #       - Fn::ImportValue: !Sub ec2-vpc-${Environment}:HomeSecurityGroup
+  #       - !Ref MlflowAccessSecurityGroup
+
+  # MlflowTargetGroup:
+  #   Type: AWS::ElasticLoadBalancingV2::TargetGroup
+  #   Properties:
+  #     Name: !Sub "mlflow-${Environment}"
+  #     HealthCheckIntervalSeconds: 6
+  #     HealthCheckPath: /
+  #     HealthCheckProtocol: HTTP
+  #     HealthCheckTimeoutSeconds: 5
+  #     HealthyThresholdCount: 2
+  #     Name: !Sub "mlflow-${Environment}"
+  #     Port: 80
+  #     Protocol: HTTP
+  #     UnhealthyThresholdCount: 2
+  #     VpcId:
+  #       Fn::ImportValue: !Sub "VPC-${Environment}"
+  #     TargetGroupAttributes:
+  #       - Key: deregistration_delay.timeout_seconds
+  #         Value: 30
+
+  # MlflowListener:
+  #   Type: AWS::ElasticLoadBalancingV2::Listener
+  #   DependsOn:
+  #     - MlflowLoadBalancer
+  #     - MlflowTargetGroup
+  #   Properties:
+  #     DefaultActions:
+  #       - TargetGroupArn: !Ref MlflowTargetGroup
+  #         Type: forward
+  #     LoadBalancerArn: !Ref MlflowLoadBalancer
+  #     Port: 80
+  #     Protocol: HTTP
+
+################################################################################
+## /\                 Mlflow load-balancer configuration                    /\ #
+##                                                                             #
+## \/                  Mlflow ECS service configuration                     \/ #
+################################################################################
+
+  #MlflowLogGroup:
+  #  Type: AWS::Logs::LogGroup
+  #  Properties:
+  #    LogGroupName: !Sub "/aws/ecs/mlflow-${Environment}"
+  #    RetentionInDays: 90
+
+  #MlflowTaskDefinition:
+  #  Type: AWS::ECS::TaskDefinition
+  #  DependsOn:
+  #    - MlflowLogGroup
+  #  Properties:
+  #    Cpu: !Ref MlflowContainerCpu
+  #    Family: !Sub "mlflow-${Environment}"
+  #    Memory: !Ref MlflowContainerMemory
+  #    TaskRoleArn: !GetAtt MlflowRole.Arn
+  #    ContainerDefinitions:
+  #      - Name: !Sub "mlflow-${Environment}"
+  #        Cpu: !Ref MlflowContainerCpu
+  #        Environment:
+  #          - Name: MLFLOW_S3_BUCKET_NAME
+  #            Value: !Ref MlflowBucket
+  #          - Name: MLFLOW_BACKEND_STORE_URI
+  #            Value: /opt/mlflow
+  #        Image: !Ref MlflowImageUrl
+  #        LogConfiguration:
+  #          LogDriver: awslogs
+  #          Options:
+  #            awslogs-group: !Ref MlflowLogGroup
+  #            awslogs-region: eu-central-1
+  #            awslogs-stream-prefix: mlflow
+  #        Memory: !Ref MlflowContainerMemory
+  #        MountPoints:
+  #          - ContainerPath: /opt/mlflow
+  #            SourceVolume: backend-store
+  #        PortMappings:
+  #          - ContainerPort: 5000
+  #    Volumes:
+  #      - Name: backend-store
+  #        DockerVolumeConfiguration:
+  #          Autoprovision: true
+  #          Driver: local
+  #          Scope: shared
+
+  #MlflowService:
+  #  Type: AWS::ECS::Service
+  #  DependsOn:
+  #    - MlflowListener
+  #    - MlflowTaskDefinition
+  #  Properties:
+  #    ServiceName: !Sub "mlflow-${Environment}"
+  #    Cluster:
+  #      Fn::ImportValue: !Sub "ECSCluster-${Environment}"
+  #    DeploymentConfiguration:
+  #      MaximumPercent: 200
+  #      MinimumHealthyPercent: 75
+  #    DesiredCount: 1
+  #    TaskDefinition: !Ref MlflowTaskDefinition
+  #    LoadBalancers:
+  #      - ContainerName: !Sub "mlflow-${Environment}"
+  #        ContainerPort: 5000
+  #        TargetGroupArn: !Ref MlflowTargetGroup
+
+################################################################################
+## /\                  Mlflow ECS service configuration                     /\ #
+##                                                                             #
+## \/                      Mlflow alerts configuration                      \/ #
+################################################################################
+
+  #MlflowLowCpuUsageAlarm:
+  #  Type: AWS::CloudWatch::Alarm
+  #  Properties:
+  #    AlarmName: !Sub "mlflow-low_cpu-${Environment}"
+  #    AlarmDescription: CPUUtilization low
+  #    MetricName: CPUUtilization
+  #    Namespace: AWS/ECS
+  #    Dimensions:
+  #      - Name: ServiceName
+  #        Value: !Ref MlflowService
+  #    Statistic: Average
+  #    Period: 60
+  #    EvaluationPeriods: 1
+  #    Threshold: 20
+  #    ComparisonOperator: LessThanOrEqualToThreshold
+
+  #MlflowHighCpuUsageAlarm:
+  #  Type: AWS::CloudWatch::Alarm
+  #  Properties:
+  #    AlarmName: !Sub "mlflow-high_cpu-${Environment}"
+  #    AlarmDescription: CPUUtilization high
+  #    MetricName: CPUUtilization
+  #    Namespace: AWS/ECS
+  #    Dimensions:
+  #      - Name: ServiceName
+  #        Value: !Ref MlflowService
+  #    Statistic: Average
+  #    Period: 60
+  #    EvaluationPeriods: 1
+  #    Threshold: 70
+  #    ComparisonOperator: GreaterThanOrEqualToThreshold
+
+Outputs:
+
+  MlflowAccessSecurityGroupId:
+    Value:
+      Fn::GetAtt:
+        - MlflowAccessSecurityGroup
+        - GroupId
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}:MlflowAccessSecurityGroupId
+
+  MlflowDBSecret:
+    Value: !Ref MlflowDBSecret
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}:MlflowDBSecret
