@@ -18,5 +18,3 @@ __pycache__
 .env
 venv/
 
-# AWS
-.aws-sam/

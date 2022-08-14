@@ -311,6 +311,22 @@ Resources:
       GroupDescription: "Security group with no ingress rule"
       VpcId: !Ref VPC
 
+  HomeSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub home-sg-${Environment}
+      GroupDescription: Security group for home access
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 1
+          ToPort: 65535
+          CidrIp: !Join
+            - ':'
+            - - '{{resolve:ssm'
+              - !Sub '/ec2/home-ipaddress-${Environment}'
+              - '1}}'
+
 Outputs:
   VPC:
     Description: A reference to the created VPC
@@ -372,3 +388,8 @@ Outputs:
     Export:
       Name: !Sub ${AWS::StackName}:NoIngressSecurityGroup
 
+  HomeSecurityGroup:
+    Description: Security group for home access
+    Value: !Ref HomeSecurityGroup
+    Export:
+      Name: !Sub ${AWS::StackName}:HomeSecurityGroup
