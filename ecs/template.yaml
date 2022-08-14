@@ -215,11 +215,19 @@ Outputs:
     Export:
       Name: !Sub ${AWS::StackName}:PublicECSCluster-${Environment}
 
+<<<<<<< HEAD
 #  PublicECSServiceRole:
 #    Description: The ARN of the ECS service role
 #    Value: !GetAtt PublicECSServiceRole.Arn
 #    Export:
 #      Name: !Sub ${AWS::StackName}:PublicECSServiceRole-${Environment}
+=======
+  PublicECSServiceRole:
+    Description: The ARN of the ECS service role
+    Value: !GetAtt PublicECSServiceRole.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}:PublicECSServiceRole-${Environment}
+>>>>>>> 5dd85d2 (Deploy mlflow service infrastructure)
 
   PublicEcsHostSecurityGroup:
     Description: A security group used to allow containers to receive traffic
