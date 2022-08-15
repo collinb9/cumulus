@@ -17,7 +17,7 @@ region="eu-west-1"
 s3_bucket="564188978527-artefacts-bastion"
 s3_prefix="mlflow-staging"
 capabilities=["CAPABILITY_NAMED_IAM"]
-parameter_overrides=["Environment=staging"]
+parameter_overrides=["Environment=staging", "MlflowImageUrl=public.ecr.aws/e5d2j4d8/mlflow:latest"]
 
 [prod.build.parameters]
 profile="prod"
@@ -36,4 +36,4 @@ region="eu-west-1"
 s3_bucket="564188978527-artefacts-bastion"
 s3_prefix="mlflow-prod"
 capabilities=["CAPABILITY_NAMED_IAM"]
-parameter_overrides=["Environment=prod"]
+parameter_overrides=["Environment=prod", "MlflowImageUrl=public.ecr.aws/e5d2j4d8/mlflow:latest"]

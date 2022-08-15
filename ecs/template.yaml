@@ -47,8 +47,8 @@ Resources:
             - Fn::ImportValue: !Sub ec2-vpc-${Environment}:PublicSubnet2
           - - Fn::ImportValue: !Sub ec2-vpc-${Environment}:PublicSubnet1
       LaunchConfigurationName: !Ref ContainerInstances
-      MinSize: !If [IsProd, 1, 1]
-      MaxSize: !If [IsProd, 2, 1]
+      MinSize: !If [IsProd, 0, 0]
+      MaxSize: !If [IsProd, 2, 2]
       DesiredCapacity: !If [IsProd, 1, 1]
       # MetricsCollection:
       #   -
@@ -62,7 +62,7 @@ Resources:
           PropagateAtLaunch: "true"
     CreationPolicy:
       ResourceSignal:
-        Timeout: PT15M
+        Timeout: PT5M
     UpdatePolicy:
       AutoScalingReplacingUpdate:
         WillReplace: 'true'
@@ -93,6 +93,7 @@ Resources:
       ImageId: !Ref ECSAMI
       SecurityGroups:
         - !Ref PublicEcsHostSecurityGroup
+        - Fn::ImportValue: !Sub ec2-vpc-${Environment}:HomeSecurityGroup
         # - Fn::ImportValue:
         #     !Sub "RedshiftAccessSecurityGroup-${Environment}"
       InstanceType: !If [IsProd, t3.micro, t3.micro]

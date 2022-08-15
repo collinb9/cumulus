@@ -13,19 +13,9 @@ Parameters:
       - staging
       - prod
 
-  # MlflowImageUrl:
-  #   Type: String
-  #   Description: The url of the Mlflow docker image to deploy.
-
-  # MlflowContainerCpu:
-  #   Type: Number
-  #   Default: 128
-  #   Description: How much CPU to give the container. 1024 is 1 CPU.
-
-  # MlflowContainerMemory:
-  #   Type: Number
-  #   Default: 512
-  #   Description: How much memory in megabytes to give the container.
+  MlflowImageUrl:
+    Type: String
+    Description: The url of the Mlflow docker image to deploy.
 
 Conditions:
   IsProd: !Equals [ !Ref Environment, prod ]
@@ -190,10 +180,10 @@ Resources:
                 Action:
                   - s3:*
                 Resource:
-                  - !GetAtt MlflowBucket.Arn
+                  - !GetAtt MlflowBucket.Outputs.BucketArn
                   - Fn::Join:
                     - "/"
-                    - - !GetAtt MlflowBucket.Arn
+                    - - !GetAtt MlflowBucket.Outputs.BucketArn
                       - "*"
 
 ###############################################################################
@@ -210,7 +200,7 @@ Resources:
       ToPort: 65535
       SourceSecurityGroupId: !GetAtt MlflowAccessSecurityGroup.GroupId
       GroupId:
-        Fn::ImportValue: !Sub "EcsHostSecurityGroup-${Environment}"
+        Fn::ImportValue: !Sub ecs-${Environment}:PublicEcsHostSecurityGroup
 
   # MlflowLoadBalancer:
   #   Type: AWS::ElasticLoadBalancingV2::LoadBalancer
@@ -260,73 +250,91 @@ Resources:
   #     Port: 80
   #     Protocol: HTTP
 
-################################################################################
-## /\                 Mlflow load-balancer configuration                    /\ #
-##                                                                             #
-## \/                  Mlflow ECS service configuration                     \/ #
-################################################################################
+###############################################################################
+# /\                 Mlflow load-balancer configuration                    /\ #
+#                                                                             #
+# \/                  Mlflow ECS service configuration                     \/ #
+###############################################################################
 
-  #MlflowLogGroup:
-  #  Type: AWS::Logs::LogGroup
-  #  Properties:
-  #    LogGroupName: !Sub "/aws/ecs/mlflow-${Environment}"
-  #    RetentionInDays: 90
+  MlflowLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/ecs/mlflow-${Environment}"
+      RetentionInDays: 90
 
-  #MlflowTaskDefinition:
-  #  Type: AWS::ECS::TaskDefinition
-  #  DependsOn:
-  #    - MlflowLogGroup
-  #  Properties:
-  #    Cpu: !Ref MlflowContainerCpu
-  #    Family: !Sub "mlflow-${Environment}"
-  #    Memory: !Ref MlflowContainerMemory
-  #    TaskRoleArn: !GetAtt MlflowRole.Arn
-  #    ContainerDefinitions:
-  #      - Name: !Sub "mlflow-${Environment}"
-  #        Cpu: !Ref MlflowContainerCpu
-  #        Environment:
-  #          - Name: MLFLOW_S3_BUCKET_NAME
-  #            Value: !Ref MlflowBucket
-  #          - Name: MLFLOW_BACKEND_STORE_URI
-  #            Value: /opt/mlflow
-  #        Image: !Ref MlflowImageUrl
-  #        LogConfiguration:
-  #          LogDriver: awslogs
-  #          Options:
-  #            awslogs-group: !Ref MlflowLogGroup
-  #            awslogs-region: eu-central-1
-  #            awslogs-stream-prefix: mlflow
-  #        Memory: !Ref MlflowContainerMemory
-  #        MountPoints:
-  #          - ContainerPath: /opt/mlflow
-  #            SourceVolume: backend-store
-  #        PortMappings:
-  #          - ContainerPort: 5000
-  #    Volumes:
-  #      - Name: backend-store
-  #        DockerVolumeConfiguration:
-  #          Autoprovision: true
-  #          Driver: local
-  #          Scope: shared
+  MlflowTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    DependsOn:
+      - MlflowLogGroup
+    Properties:
+      # Cpu: 1
+      Family: !Sub mlflow-${Environment}
+      Memory: 1024
+      TaskRoleArn: !GetAtt MlflowRole.Arn
+      ContainerDefinitions:
+        - Name: !Sub mlflow-task-definition-${Environment}
+          Cpu: 1
+          Environment:
+            - Name: MLFLOW_S3_BUCKET_NAME
+              Value: !Join
+                - ''
+                - - s3://
+                  - !GetAtt MlflowBucket.Outputs.BucketName
+            - Name: MLFLOW_BACKEND_STORE_URI
+              Value: !Join
+                - ''
+                - - postgresql://
+                  - !Join
+                    - ':'
+                    - - '{{resolve:secretsmanager'
+                      - !Ref MlflowDBSecret
+                      - 'SecretString:username}}'
+                  - ':'
+                  - !Join
+                    - ':'
+                    - - '{{resolve:secretsmanager'
+                      - !Ref MlflowDBSecret
+                      - 'SecretString:password}}'
+                  - '@'
+                  - !GetAtt MlflowDBInstance.Endpoint.Address
+                  - /mlflow_db
+          Image: !Ref MlflowImageUrl
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref MlflowLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: mlflow
+          # MountPoints:
+          #   - ContainerPath: /opt/mlflow
+          #     SourceVolume: backend-store
+          PortMappings:
+            - ContainerPort: 5000
+      Volumes:
+        - Name: backend-store
+          DockerVolumeConfiguration:
+            Autoprovision: true
+            Driver: local
+            Scope: shared
 
-  #MlflowService:
-  #  Type: AWS::ECS::Service
-  #  DependsOn:
-  #    - MlflowListener
-  #    - MlflowTaskDefinition
-  #  Properties:
-  #    ServiceName: !Sub "mlflow-${Environment}"
-  #    Cluster:
-  #      Fn::ImportValue: !Sub "ECSCluster-${Environment}"
-  #    DeploymentConfiguration:
-  #      MaximumPercent: 200
-  #      MinimumHealthyPercent: 75
-  #    DesiredCount: 1
-  #    TaskDefinition: !Ref MlflowTaskDefinition
-  #    LoadBalancers:
-  #      - ContainerName: !Sub "mlflow-${Environment}"
-  #        ContainerPort: 5000
-  #        TargetGroupArn: !Ref MlflowTargetGroup
+  MlflowService:
+    Type: AWS::ECS::Service
+    # DependsOn:
+    #   - MlflowListener
+    #   - MlflowTaskDefinition
+    Properties:
+      ServiceName: !Sub mlflow-ecs-service-${Environment}
+      Cluster:
+        Fn::ImportValue: !Sub ecs-${Environment}:PublicECSCluster-${Environment}
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 75
+      DesiredCount: 1
+      TaskDefinition: !Ref MlflowTaskDefinition
+      # LoadBalancers:
+      #   - ContainerName: !Sub "mlflow-${Environment}"
+      #     ContainerPort: 5000
+      #     TargetGroupArn: !Ref MlflowTargetGroup
 
 ################################################################################
 ## /\                  Mlflow ECS service configuration                     /\ #
