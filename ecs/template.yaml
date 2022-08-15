@@ -15,7 +15,6 @@ Parameters:
   ECSAMI:
     Description: AMI ID
     Type: String
-    Default: ami-089950bc622d39ed8 # Amazon Linux, free tier eligible
 
 Conditions:
   IsProd: !Equals [ !Ref Environment, prod ]
@@ -27,203 +26,203 @@ Resources:
     Properties :
       ClusterName : !Sub "ecs-cluster-public-${Environment}"
 
-  PublicEcsHostSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupName: ecs
-      GroupDescription: Access for the public ECS cluster hosts that run containers
-      VpcId:
-        Fn::ImportValue:
-          !Sub ec2-vpc-${Environment}:VPC
+#  PublicEcsHostSecurityGroup:
+#    Type: AWS::EC2::SecurityGroup
+#    Properties:
+#      GroupName: ecs
+#      GroupDescription: Access for the public ECS cluster hosts that run containers
+#      VpcId:
+#        Fn::ImportValue:
+#          !Sub ec2-vpc-${Environment}:VPC
 
-  ECSAutoScalingGroup:
-    Type: AWS::AutoScaling::AutoScalingGroup
-    Properties:
-      AutoScalingGroupName: !Sub ecs-cluster-public-autoscalinggroup-${Environment}
-      VPCZoneIdentifier:
-        !If
-          - IsProd
-          - - Fn::ImportValue: !Sub ec2-vpc-${Environment}:PublicSubnet1
-            - Fn::ImportValue: !Sub ec2-vpc-${Environment}:PublicSubnet2
-          - - Fn::ImportValue: !Sub ec2-vpc-${Environment}:PublicSubnet1
-      LaunchConfigurationName: !Ref ContainerInstances
-      MinSize: !If [IsProd, 0, 0]
-      MaxSize: !If [IsProd, 2, 2]
-      DesiredCapacity: !If [IsProd, 1, 1]
-      # MetricsCollection:
-      #   -
-      #     Granularity: "1Minute"
-      Tags:
-        - Key: Environment
-          Value: !Sub "${Environment}"
-          PropagateAtLaunch: "true"
-        - Key: Name
-          Value: !Sub "ecs-cluster-public-autoscalinggroup-${Environment}"
-          PropagateAtLaunch: "true"
-    CreationPolicy:
-      ResourceSignal:
-        Timeout: PT5M
-    UpdatePolicy:
-      AutoScalingReplacingUpdate:
-        WillReplace: 'true'
+#  ECSAutoScalingGroup:
+#    Type: AWS::AutoScaling::AutoScalingGroup
+#    Properties:
+#      AutoScalingGroupName: !Sub ecs-cluster-public-autoscalinggroup-${Environment}
+#      VPCZoneIdentifier:
+#        !If
+#          - IsProd
+#          - - Fn::ImportValue: !Sub ec2-vpc-${Environment}:PublicSubnet1
+#            - Fn::ImportValue: !Sub ec2-vpc-${Environment}:PublicSubnet2
+#          - - Fn::ImportValue: !Sub ec2-vpc-${Environment}:PublicSubnet1
+#      LaunchConfigurationName: !Ref ContainerInstances
+#      MinSize: !If [IsProd, 1, 1]
+#      MaxSize: !If [IsProd, 2, 2]
+#      DesiredCapacity: !If [IsProd, 1, 1]
+#      # MetricsCollection:
+#      #   -
+#      #     Granularity: "1Minute"
+#      Tags:
+#        - Key: Environment
+#          Value: !Sub "${Environment}"
+#          PropagateAtLaunch: "true"
+#        - Key: Name
+#          Value: !Sub "ecs-cluster-public-autoscalinggroup-${Environment}"
+#          PropagateAtLaunch: "true"
+#    CreationPolicy:
+#      ResourceSignal:
+#        Timeout: PT5M
+#    UpdatePolicy:
+#      AutoScalingReplacingUpdate:
+#        WillReplace: 'true'
 
-  # ECSAutoScalingGroupInServiceAlarm:
-  #   Type: 'AWS::CloudWatch::Alarm'
-  #   Properties:
-  #     AlarmDescription: 'Number of instances in ASG is low'
-  #     ComparisonOperator: LessThanThreshold
-  #     EvaluationPeriods: 2
-  #     Dimensions:
-  #     - Name: AutoScalingGroupName
-  #       Value: !Sub "ecs-cluster-${Environment}"
-  #     MetricName: 'GroupInServiceInstances'
-  #     Namespace: 'AWS/AutoScaling'
-  #     AlarmActions:
-  #     - {'Fn::ImportValue': !Sub 'P2-alert-${Environment}'}
-  #     OKActions:
-  #     - {'Fn::ImportValue': !Sub 'P2-alert-${Environment}'}
-  #     Period: 300
-  #     Statistic: Minimum
-  #     Threshold: 2
-  #     TreatMissingData: breaching
+#  # ECSAutoScalingGroupInServiceAlarm:
+#  #   Type: 'AWS::CloudWatch::Alarm'
+#  #   Properties:
+#  #     AlarmDescription: 'Number of instances in ASG is low'
+#  #     ComparisonOperator: LessThanThreshold
+#  #     EvaluationPeriods: 2
+#  #     Dimensions:
+#  #     - Name: AutoScalingGroupName
+#  #       Value: !Sub "ecs-cluster-${Environment}"
+#  #     MetricName: 'GroupInServiceInstances'
+#  #     Namespace: 'AWS/AutoScaling'
+#  #     AlarmActions:
+#  #     - {'Fn::ImportValue': !Sub 'P2-alert-${Environment}'}
+#  #     OKActions:
+#  #     - {'Fn::ImportValue': !Sub 'P2-alert-${Environment}'}
+#  #     Period: 300
+#  #     Statistic: Minimum
+#  #     Threshold: 2
+#  #     TreatMissingData: breaching
 
-  ContainerInstances:
-    Type: AWS::AutoScaling::LaunchConfiguration
-    Properties:
-      ImageId: !Ref ECSAMI
-      SecurityGroups:
-        - !Ref PublicEcsHostSecurityGroup
-        - Fn::ImportValue: !Sub ec2-vpc-${Environment}:HomeSecurityGroup
-        # - Fn::ImportValue:
-        #     !Sub "RedshiftAccessSecurityGroup-${Environment}"
-      InstanceType: !If [IsProd, t3.micro, t3.micro]
-      IamInstanceProfile: !Ref PublicECSInstanceProfile
-      KeyName: !Sub master-${Environment}
-      UserData:
-        Fn::Base64: !Sub |
-          #!/bin/bash -xe
-          echo ECS_CLUSTER=${PublicECSCluster} >> /etc/ecs/ecs.config
-          yum install -y aws-cfn-bootstrap
-          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource ECSAutoScalingGroup --region ${AWS::Region}
+#  ContainerInstances:
+#    Type: AWS::AutoScaling::LaunchConfiguration
+#    Properties:
+#      ImageId: !Ref ECSAMI
+#      SecurityGroups:
+#        - !Ref PublicEcsHostSecurityGroup
+#        - Fn::ImportValue: !Sub ec2-vpc-${Environment}:HomeSecurityGroup
+#        # - Fn::ImportValue:
+#        #     !Sub "RedshiftAccessSecurityGroup-${Environment}"
+#      InstanceType: !If [IsProd, t3.micro, t3.micro]
+#      IamInstanceProfile: !Ref PublicECSInstanceProfile
+#      KeyName: !Sub master-${Environment}
+#      UserData:
+#        Fn::Base64: !Sub |
+#          #!/bin/bash -xe
+#          echo ECS_CLUSTER=${PublicECSCluster} >> /etc/ecs/ecs.config
+#          yum install -y aws-cfn-bootstrap
+#          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource ECSAutoScalingGroup --region ${AWS::Region}
 
-  AutoscalingRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName : !Sub ecs-cluster-public-autoscaling-role-${Environment}
-      AssumeRolePolicyDocument:
-        Statement:
-        - Effect: Allow
-          Principal:
-            Service:
-              - application-autoscaling.amazonaws.com
-          Action:
-            - sts:AssumeRole
-      Path: /
-      Policies:
-      - PolicyName: service-autoscaling
-        PolicyDocument:
-          Statement:
-          - Effect: Allow
-            Action:
-              - application-autoscaling:*
-              - cloudwatch:DescribeAlarms
-              - cloudwatch:PutMetricAlarm
-              - ecs:DescribeServices
-              - ecs:UpdateService
-            Resource: '*'
+#  AutoscalingRole:
+#    Type: AWS::IAM::Role
+#    Properties:
+#      RoleName : !Sub ecs-cluster-public-autoscaling-role-${Environment}
+#      AssumeRolePolicyDocument:
+#        Statement:
+#        - Effect: Allow
+#          Principal:
+#            Service:
+#              - application-autoscaling.amazonaws.com
+#          Action:
+#            - sts:AssumeRole
+#      Path: /
+#      Policies:
+#      - PolicyName: service-autoscaling
+#        PolicyDocument:
+#          Statement:
+#          - Effect: Allow
+#            Action:
+#              - application-autoscaling:*
+#              - cloudwatch:DescribeAlarms
+#              - cloudwatch:PutMetricAlarm
+#              - ecs:DescribeServices
+#              - ecs:UpdateService
+#            Resource: '*'
 
-  PublicECSInstanceProfile:
-    Type: AWS::IAM::InstanceProfile
-    Properties:
-      InstanceProfileName: !Sub ecs-cluster-public-instance-profile-${Environment}
-      Path: /
-      Roles:
-        - !Ref PublicECSInstanceRole
+#  PublicECSInstanceProfile:
+#    Type: AWS::IAM::InstanceProfile
+#    Properties:
+#      InstanceProfileName: !Sub ecs-cluster-public-instance-profile-${Environment}
+#      Path: /
+#      Roles:
+#        - !Ref PublicECSInstanceRole
 
-  PublicECSInstanceRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName : !Sub ecs-cluster-public-public-instance-role-role-${Environment}
-      AssumeRolePolicyDocument:
-        Statement:
-        - Effect: Allow
-          Principal:
-            Service:
-              - ec2.amazonaws.com
-          Action:
-            - sts:AssumeRole
-      Path: /
-      Policies:
-      - PolicyName: ecs-service
-        PolicyDocument:
-          Statement:
-          - Effect: Allow
-            Action:
-              - ecs:CreateCluster
-              - ecs:DeregisterContainerInstance
-              - ecs:DiscoverPollEndpoint
-              - ecs:Poll
-              - ecs:RegisterContainerInstance
-              - ecs:StartTelemetrySession
-              - ecs:Submit*
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-              - ecr:GetAuthorizationToken
-              - ecr:BatchGetImage
-              - ecr:GetDownloadUrlForLayer
-            Resource: '*'
+#  PublicECSInstanceRole:
+#    Type: AWS::IAM::Role
+#    Properties:
+#      RoleName : !Sub ecs-cluster-public-public-instance-role-role-${Environment}
+#      AssumeRolePolicyDocument:
+#        Statement:
+#        - Effect: Allow
+#          Principal:
+#            Service:
+#              - ec2.amazonaws.com
+#          Action:
+#            - sts:AssumeRole
+#      Path: /
+#      Policies:
+#      - PolicyName: ecs-service
+#        PolicyDocument:
+#          Statement:
+#          - Effect: Allow
+#            Action:
+#              - ecs:CreateCluster
+#              - ecs:DeregisterContainerInstance
+#              - ecs:DiscoverPollEndpoint
+#              - ecs:Poll
+#              - ecs:RegisterContainerInstance
+#              - ecs:StartTelemetrySession
+#              - ecs:Submit*
+#              - logs:CreateLogStream
+#              - logs:PutLogEvents
+#              - ecr:GetAuthorizationToken
+#              - ecr:BatchGetImage
+#              - ecr:GetDownloadUrlForLayer
+#            Resource: '*'
 
-  PublicECSServiceRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName : !Sub ecs-cluster-public-service-role-${Environment}
-      AssumeRolePolicyDocument:
-        Statement:
-        - Effect: Allow
-          Principal:
-            Service:
-              - ecs.amazonaws.com
-          Action:
-            - sts:AssumeRole
-      Path: /
-      Policies:
-      - PolicyName: ecs-service
-        PolicyDocument:
-          Statement:
-          - Effect: Allow
-            Action:
-              # Rules which allow ECS to attach network interfaces to instances
-              # on your behalf in order for awsvpc networking mode to work right
-              - ec2:AttachNetworkInterface
-              - ec2:CreateNetworkInterface
-              - ec2:CreateNetworkInterfacePermission
-              - ec2:DeleteNetworkInterface
-              - ec2:DeleteNetworkInterfacePermission
-              - ec2:Describe*
-              - ec2:DetachNetworkInterface
-              - elasticloadbalancing:DeregisterInstancesFromLoadBalancer
-              - elasticloadbalancing:DeregisterTargets
-              - elasticloadbalancing:Describe*
-              - elasticloadbalancing:RegisterInstancesWithLoadBalancer
-              - elasticloadbalancing:RegisterTargets
-            Resource: '*'
+#  PublicECSServiceRole:
+#    Type: AWS::IAM::Role
+#    Properties:
+#      RoleName : !Sub ecs-cluster-public-service-role-${Environment}
+#      AssumeRolePolicyDocument:
+#        Statement:
+#        - Effect: Allow
+#          Principal:
+#            Service:
+#              - ecs.amazonaws.com
+#          Action:
+#            - sts:AssumeRole
+#      Path: /
+#      Policies:
+#      - PolicyName: ecs-service
+#        PolicyDocument:
+#          Statement:
+#          - Effect: Allow
+#            Action:
+#              # Rules which allow ECS to attach network interfaces to instances
+#              # on your behalf in order for awsvpc networking mode to work right
+#              - ec2:AttachNetworkInterface
+#              - ec2:CreateNetworkInterface
+#              - ec2:CreateNetworkInterfacePermission
+#              - ec2:DeleteNetworkInterface
+#              - ec2:DeleteNetworkInterfacePermission
+#              - ec2:Describe*
+#              - ec2:DetachNetworkInterface
+#              - elasticloadbalancing:DeregisterInstancesFromLoadBalancer
+#              - elasticloadbalancing:DeregisterTargets
+#              - elasticloadbalancing:Describe*
+#              - elasticloadbalancing:RegisterInstancesWithLoadBalancer
+#              - elasticloadbalancing:RegisterTargets
+#            Resource: '*'
 
-Outputs:
+#Outputs:
 
-  PublicClusterName:
-    Description: The name of the ECS cluster
-    Value: !Ref PublicECSCluster
-    Export:
-      Name: !Sub ${AWS::StackName}:PublicECSCluster-${Environment}
+#  PublicClusterName:
+#    Description: The name of the ECS cluster
+#    Value: !Ref PublicECSCluster
+#    Export:
+#      Name: !Sub ${AWS::StackName}:PublicECSCluster-${Environment}
 
-  PublicECSServiceRole:
-    Description: The ARN of the ECS service role
-    Value: !GetAtt PublicECSServiceRole.Arn
-    Export:
-      Name: !Sub ${AWS::StackName}:PublicECSServiceRole-${Environment}
+#  PublicECSServiceRole:
+#    Description: The ARN of the ECS service role
+#    Value: !GetAtt PublicECSServiceRole.Arn
+#    Export:
+#      Name: !Sub ${AWS::StackName}:PublicECSServiceRole-${Environment}
 
-  PublicEcsHostSecurityGroup:
-    Description: A security group used to allow containers to receive traffic
-    Value: !Ref PublicEcsHostSecurityGroup
-    Export:
-      Name: !Sub ${AWS::StackName}:PublicEcsHostSecurityGroup
+#  PublicEcsHostSecurityGroup:
+#    Description: A security group used to allow containers to receive traffic
+#    Value: !Ref PublicEcsHostSecurityGroup
+#    Export:
+#      Name: !Sub ${AWS::StackName}:PublicEcsHostSecurityGroup
