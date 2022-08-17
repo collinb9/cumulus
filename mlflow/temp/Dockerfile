@@ -1,7 +1,8 @@
-FROM python:3.8.13
+FROM python:3.9.13
 
-ENV MLFLOW_VERSION 1.6.0
+ENV MLFLOW_VERSION 1.27.0
 RUN pip install boto3 mlflow==${MLFLOW_VERSION} psycopg2-binary==2.8.6
+# RUN pip install protobuf==3.20.1
 
 # These environment variables should be set at runtime
 ENV BACKEND_STORE_URI=
