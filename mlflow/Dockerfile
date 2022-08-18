@@ -1,15 +1,17 @@
-FROM python:3.9.13-slim
+FROM python:3.8.13
 
-RUN apt-get update -y && \
-    apt-get install -y python3-dev default-libmysqlclient-dev build-essential
-
-RUN pip install psycopg2-binary==2.8.6 && \
-    pip install mlflow[extras]==1.28.0
+ENV MLFLOW_VERSION 1.27.0
+RUN pip install boto3 mlflow==${MLFLOW_VERSION} psycopg2-binary==2.8.6
+# RUN pip install protobuf==3.20.1
 
 # These environment variables should be set at runtime
 ENV BACKEND_STORE_URI=
 ENV DEFAULT_ARTIFACT_ROOT=
 
-EXPOSE 80
+EXPOSE 5000
 
-CMD ["sh", "-c", "mlflow server --host 0.0.0.0 --port 80 --backend-store-uri $BACKEND_STORE_URI --default-artifact-root $DEFAULT_ARTIFACT_ROOT"]
+CMD mlflow server \
+    --backend-store-uri ${BACKEND_STORE_URI} \
+    --default-artifact-root ${DEFAULT_ARTIFACT_ROOT} \
+    --host 0.0.0.0
+

@@ -12,9 +12,9 @@ Parameters:
       - staging
       - prod
 
-  ECSAMI:
-    Description: AMI ID
-    Type: String
+  # ECSAMI:
+  #   Description: AMI ID
+  #   Type: String
 
 Conditions:
   IsProd: !Equals [ !Ref Environment, prod ]
@@ -26,14 +26,14 @@ Resources:
     Properties :
       ClusterName : !Sub "ecs-cluster-public-${Environment}"
 
-#  PublicEcsHostSecurityGroup:
-#    Type: AWS::EC2::SecurityGroup
-#    Properties:
-#      GroupName: ecs
-#      GroupDescription: Access for the public ECS cluster hosts that run containers
-#      VpcId:
-#        Fn::ImportValue:
-#          !Sub ec2-vpc-${Environment}:VPC
+  PublicEcsHostSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: ecs
+      GroupDescription: Access for the public ECS cluster hosts that run containers
+      VpcId:
+        Fn::ImportValue:
+          !Sub ec2-vpc-${Environment}:VPC
 
 #  ECSAutoScalingGroup:
 #    Type: AWS::AutoScaling::AutoScalingGroup
@@ -207,13 +207,13 @@ Resources:
 #              - elasticloadbalancing:RegisterTargets
 #            Resource: '*'
 
-#Outputs:
+Outputs:
 
-#  PublicClusterName:
-#    Description: The name of the ECS cluster
-#    Value: !Ref PublicECSCluster
-#    Export:
-#      Name: !Sub ${AWS::StackName}:PublicECSCluster-${Environment}
+  PublicClusterName:
+    Description: The name of the ECS cluster
+    Value: !Ref PublicECSCluster
+    Export:
+      Name: !Sub ${AWS::StackName}:PublicECSCluster-${Environment}
 
 #  PublicECSServiceRole:
 #    Description: The ARN of the ECS service role
@@ -221,8 +221,8 @@ Resources:
 #    Export:
 #      Name: !Sub ${AWS::StackName}:PublicECSServiceRole-${Environment}
 
-#  PublicEcsHostSecurityGroup:
-#    Description: A security group used to allow containers to receive traffic
-#    Value: !Ref PublicEcsHostSecurityGroup
-#    Export:
-#      Name: !Sub ${AWS::StackName}:PublicEcsHostSecurityGroup
+  PublicEcsHostSecurityGroup:
+    Description: A security group used to allow containers to receive traffic
+    Value: !Ref PublicEcsHostSecurityGroup
+    Export:
+      Name: !Sub ${AWS::StackName}:PublicEcsHostSecurityGroup

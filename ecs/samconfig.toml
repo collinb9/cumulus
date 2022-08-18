@@ -17,7 +17,7 @@ region="eu-west-1"
 s3_bucket="564188978527-artefacts-bastion"
 s3_prefix="ecs-staging"
 capabilities=["CAPABILITY_NAMED_IAM"]
-parameter_overrides=["Environment=staging", "ECSAMI=ami-044fb3b709f19cb4a"]
+parameter_overrides=["Environment=staging"] # "ECSAMI=ami-044fb3b709f19cb4a"]
 
 [prod.build.parameters]
 profile="prod"
@@ -36,4 +36,4 @@ region="eu-west-1"
 s3_bucket="564188978527-artefacts-bastion"
 s3_prefix="ecs-prod"
 capabilities=["CAPABILITY_NAMED_IAM"]
-parameter_overrides=["Environment=prod", "ECSAMI=ami-044fb3b709f19cb4a"]
+parameter_overrides=["Environment=prod"] #, "ECSAMI=ami-044fb3b709f19cb4a"]
