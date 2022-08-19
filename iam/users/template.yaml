@@ -15,6 +15,7 @@ Resources:
         - Developers
         - IAMAdmins
         - BaseUsers
+        - Administrators
       LoginProfile:
         Password: !Join
           - ''
