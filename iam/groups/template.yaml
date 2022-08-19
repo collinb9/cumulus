@@ -77,6 +77,51 @@ Resources:
                         - accountid
                       - "role/ReadOnlyAccess-prod"
 
+  Administrators:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: Developers
+      Path: /
+      Policies:
+        - PolicyName: AssumeDeveloperRoles
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sts:AssumeRole
+                Resource:
+                  - !Join
+                    - ":"
+                    - - arn
+                      - !Ref AWS::Partition
+                      - "iam:"
+                      - Fn::FindInMap:
+                        - AccountId
+                        - staging
+                        - accountid
+                      - "role/DeveloperAccess-staging"
+                  - !Join
+                    - ":"
+                    - - arn
+                      - !Ref AWS::Partition
+                      - "iam:"
+                      - Fn::FindInMap:
+                        - AccountId
+                        - bastion
+                        - accountid
+                      - "role/DeveloperAccess-bastion"
+                  - !Join
+                    - ":"
+                    - - arn
+                      - !Ref AWS::Partition
+                      - "iam:"
+                      - Fn::FindInMap:
+                        - AccountId
+                        - prod
+                        - accountid
+                      - "role/DeveloperAccess-prod"
+
   Deployers:
     Type: AWS::IAM::Group
     Properties:
