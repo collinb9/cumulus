@@ -88,34 +88,9 @@ def read_environments_in_sam_stack(
     return config.keys()
 
 
-def apply_sam_workflow_to_stack(
-    stack: str,
-    environment: Environment = Environment.STAGING,
-    deploy_args: List[str] = None,
-):
-    """
-    Apply the SAM workflow to a particular stack
-    """
-    deploy_args = deploy_args or []
-    command = [
-        os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), "sam_workflow.sh"
-        ),
-        environment.value,
-    ]
-    command.extend(deploy_args)
-
-    environments = read_environments_in_sam_stack(stack)
-    if environment.value not in environments:
-        print(
-            f"Stack {stack} is not configured for the environment {environment.value}"
-        )
-        print("Continuing")
-        return
+def run_subprocess(*args, **kwargs):
     try:
-        result = subprocess.run(
-            command, cwd=stack, check=True, capture_output=True
-        )
+        result = subprocess.run(*args, **kwargs)
     except subprocess.CalledProcessError as err:
         stderr = err.stderr.decode("utf-8")
         stdout = err.stdout.decode("utf-8")
@@ -138,3 +113,46 @@ def apply_sam_workflow_to_stack(
         stdout = result.stdout.decode("utf-8")
         print(stdout)
         print(stderr)
+
+def apply_sam_workflow_to_stack(
+    stack: str,
+    environment: Environment = Environment.STAGING,
+    deploy_args: List[str] = None,
+):
+    """
+    Apply the SAM workflow to a particular stack
+    """
+    environments = read_environments_in_sam_stack(stack)
+    if environment.value not in environments:
+        print(
+            f"Stack {stack} is not configured for the environment {environment.value}"
+        )
+        print("Continuing")
+        return
+    deploy_args = deploy_args or []
+    build_package_command = [
+        os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "sam_build_package.sh"
+        ),
+        environment.value,
+    ]
+
+    print("Building for ", environment.value, " ...")
+    run_subprocess(build_package_command, cwd=stack, check=True, capture_output=True)
+    deploy_commands = [
+        [
+            os.path.join(
+                os.path.dirname(os.path.realpath(__file__)), "sam_deploy.sh"
+            ),
+            env,
+        ]
+        for env in environments
+        if env.startswith(environment.value)
+    ]
+
+    for command in deploy_commands:
+        print("Deploying for ", command[-1], " ...")
+        command.extend(deploy_args)
+        run_subprocess(
+            command, cwd=stack, check=True, capture_output=True
+        )
