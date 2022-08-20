@@ -1,0 +1,133 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  Template for creating a VPN
+
+Parameters:
+
+  Environment:
+    Description: An environment name that will be prefixed to resource names
+    Type: String
+    Default: staging
+    AllowedValues:
+      - bastion
+      - staging
+      - prod
+
+  VpcId:
+    Description: Id of the VPC where the VPN will be located
+    Type: String
+
+  VpnLogRetention:
+    Description: Number of days to keep logs for
+    Type: Number
+    Default: 7
+
+  VpnCidrBlock:
+    Description: Cidr block for to assign the VPN
+    Type: String
+    Default: 10.1.0.0/22
+
+  ServerCertificateId:
+    Description: Client VPN server certificate
+    Type: String
+
+  ClientCertificateId:
+    Description: Client VPN client certificate
+    Type: String
+
+
+Resources:
+
+  VPNLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/ec2/vpn-${AWS::Region}-${Environment}
+      RetentionInDays: !Ref VpnLogRetention
+      Tags:
+        - Key: application
+          Value: !Sub vpn-${AWS::Region}-${Environment}
+        - Key: application-type
+          Value: vpn
+
+  ClientVPNSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub clientvpn-security-group-${AWS::Region}-${Environment}
+      GroupDescription: !Sub Security group associated with ${AWS::Region}-${Environment} client VPN
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: application
+          Value: !Sub vpn-${AWS::Region}-${Environment}
+        - Key: application-type
+          Value: vpn
+
+  ClientVPNEndpoint:
+    Type: AWS::EC2::ClientVpnEndpoint
+    Properties:
+      Description: !Sub Endpoint for ${AWS::Region}-${Environment} client VPN
+      ClientCidrBlock: !Ref VpnCidrBlock
+      ServerCertificateArn: !Join
+        - ''
+        - - !Sub arn:aws:acm:${AWS::Region}:${AWS::AccountId}:certificate/
+          - !Ref ServerCertificateId
+      VpcId: !Ref VpcId
+      SecurityGroupIds:
+        - !Ref ClientVPNSecurityGroup
+      AuthenticationOptions:
+        - MutualAuthentication:
+            ClientRootCertificateChainArn: !Join
+              - ''
+              - - !Sub arn:aws:acm:${AWS::Region}:${AWS::AccountId}:certificate/
+                - !Ref ClientCertificateId
+          Type: certificate-authentication
+      ConnectionLogOptions:
+        CloudwatchLogGroup: !Ref VPNLogGroup
+        Enabled: true
+      TagSpecifications:
+        - ResourceType: client-vpn-endpoint
+          Tags:
+            - Key: application
+              Value: !Sub vpn-${AWS::Region}-${Environment}
+            - Key: application-type
+              Value: vpn
+
+  ClientVPNTargetNetworkAssociation:
+    Type: AWS::EC2::ClientVpnTargetNetworkAssociation
+    Properties:
+      ClientVpnEndpointId: !Ref ClientVPNEndpoint
+      SubnetId:
+         Fn::ImportValue:
+           !Sub ec2-vpc-${Environment}:PublicSubnet1-${AWS::Region}
+
+  ClientVpnAuthorizationRule:
+    Type: AWS::EC2::ClientVpnAuthorizationRule
+    Properties:
+      AuthorizeAllGroups: true
+      ClientVpnEndpointId: !Ref ClientVPNEndpoint
+      Description: !Sub Authorize all groups to access the full ${AWS::Region}-${Environment} client VPN
+      TargetNetworkCidr: 10.1.0.0/22
+
+  ClientVPNRouteToInternetAuthorizationRule:
+    DependsOn: ClientVPNTargetNetworkAssociation
+    Type: AWS::EC2::ClientVpnAuthorizationRule
+    Properties:
+      Description: !Sub Authorize ${AWS::Region}-${Environment} client VPN to use the internet
+      AuthorizeAllGroups: true
+      ClientVpnEndpointId: !Ref ClientVPNEndpoint
+      TargetNetworkCidr: 0.0.0.0/0
+
+  ClientVPNRoute:
+    Type: AWS::EC2::ClientVpnRoute
+    Properties:
+      ClientVpnEndpointId: !Ref ClientVPNEndpoint
+      Description: !Sub Route to the internet for ${AWS::Region}-${Environment} client VPN
+      DestinationCidrBlock: 0.0.0.0/0
+      TargetVpcSubnetId:
+         Fn::ImportValue:
+           !Sub ec2-vpc-${Environment}:PublicSubnet1-${AWS::Region}
+

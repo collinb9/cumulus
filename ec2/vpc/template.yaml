@@ -348,6 +348,24 @@ Outputs:
     Export:
       Name: !Sub ${AWS::StackName}:PublicSubnet3
 
+  PublicSubnet1Region:
+    Description: A reference to the public subnet in the 1st Availability Zone
+    Value: !Ref PublicSubnet1
+    Export:
+      Name: !Sub ${AWS::StackName}:PublicSubnet1-${AWS::Region}
+
+  PublicSubnet2Region:
+    Description: A reference to the public subnet in the 2nd Availability Zone
+    Value: !Ref PublicSubnet2
+    Export:
+      Name: !Sub ${AWS::StackName}:PublicSubnet2-${AWS::Region}
+
+  PublicSubnet3Region:
+    Description: A reference to the public subnet in the 2nd Availability Zone
+    Value: !Ref PublicSubnet3
+    Export:
+      Name: !Sub ${AWS::StackName}:PublicSubnet3-${AWS::Region}
+
   PrivateSubnet1:
     Description: A reference to the private subnet in the 1st Availability Zone
     Value: !Ref PrivateSubnet1
