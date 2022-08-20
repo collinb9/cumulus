@@ -13,10 +13,6 @@ Parameters:
       - staging
       - prod
 
-  VpcId:
-    Description: Id of the VPC where the VPN will be located
-    Type: String
-
   VpnLogRetention:
     Description: Number of days to keep logs for
     Type: Number
@@ -30,11 +26,6 @@ Parameters:
   ServerCertificateId:
     Description: Client VPN server certificate
     Type: String
-
-  ClientCertificateId:
-    Description: Client VPN client certificate
-    Type: String
-
 
 Resources:
 
@@ -54,7 +45,9 @@ Resources:
     Properties:
       GroupName: !Sub clientvpn-security-group-${AWS::Region}-${Environment}
       GroupDescription: !Sub Security group associated with ${AWS::Region}-${Environment} client VPN
-      VpcId: !Ref VpcId
+      VpcId:
+          Fn::ImportValue:
+            !Sub ec2-vpc-${Environment}:VPC
       SecurityGroupIngress:
         - IpProtocol: -1
           FromPort: -1
@@ -75,7 +68,9 @@ Resources:
         - ''
         - - !Sub arn:aws:acm:${AWS::Region}:${AWS::AccountId}:certificate/
           - !Ref ServerCertificateId
-      VpcId: !Ref VpcId
+      VpcId:
+          Fn::ImportValue:
+            !Sub ec2-vpc-${Environment}:VPC
       SecurityGroupIds:
         - !Ref ClientVPNSecurityGroup
       AuthenticationOptions:
@@ -83,7 +78,7 @@ Resources:
             ClientRootCertificateChainArn: !Join
               - ''
               - - !Sub arn:aws:acm:${AWS::Region}:${AWS::AccountId}:certificate/
-                - !Ref ClientCertificateId
+                - !Ref ServerCertificateId
           Type: certificate-authentication
       ConnectionLogOptions:
         CloudwatchLogGroup: !Ref VPNLogGroup
@@ -102,7 +97,7 @@ Resources:
       ClientVpnEndpointId: !Ref ClientVPNEndpoint
       SubnetId:
          Fn::ImportValue:
-           !Sub ec2-vpc-${Environment}:PublicSubnet1-${AWS::Region}
+           !Sub ec2-vpc-${Environment}:PublicSubnet1
 
   ClientVpnAuthorizationRule:
     Type: AWS::EC2::ClientVpnAuthorizationRule
@@ -113,8 +108,8 @@ Resources:
       TargetNetworkCidr: 10.1.0.0/22
 
   ClientVPNRouteToInternetAuthorizationRule:
-    DependsOn: ClientVPNTargetNetworkAssociation
     Type: AWS::EC2::ClientVpnAuthorizationRule
+    DependsOn: ClientVPNTargetNetworkAssociation
     Properties:
       Description: !Sub Authorize ${AWS::Region}-${Environment} client VPN to use the internet
       AuthorizeAllGroups: true
@@ -123,11 +118,12 @@ Resources:
 
   ClientVPNRoute:
     Type: AWS::EC2::ClientVpnRoute
+    DependsOn: ClientVPNTargetNetworkAssociation
     Properties:
       ClientVpnEndpointId: !Ref ClientVPNEndpoint
       Description: !Sub Route to the internet for ${AWS::Region}-${Environment} client VPN
       DestinationCidrBlock: 0.0.0.0/0
       TargetVpcSubnetId:
          Fn::ImportValue:
-           !Sub ec2-vpc-${Environment}:PublicSubnet1-${AWS::Region}
+           !Sub ec2-vpc-${Environment}:PublicSubnet1
 

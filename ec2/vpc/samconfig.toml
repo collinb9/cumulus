@@ -18,6 +18,14 @@ s3_bucket="564188978527-artefacts-bastion"
 s3_prefix="ec2-vpc-staging"
 parameter_overrides=["Environment=staging"]
 
+[staging-us-east-1.deploy.parameters]
+profile="staging"
+stack_name="ec2-vpc-staging"
+region="us-east-1"
+s3_bucket="564188978527-artefacts-bastion"
+s3_prefix="ec2-vpc-staging"
+parameter_overrides=["Environment=staging"]
+
 [prod.build.parameters]
 profile="prod"
 use_container=true
