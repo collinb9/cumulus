@@ -108,12 +108,11 @@ def run_subprocess(*args, **kwargs):
         else:
             print("\nHalting.")
             raise
-    stderr = result.stderr.decode("utf-8")
-    stdout = result.stdout.decode("utf-8")
-    print(stdout)
-    print(stderr)
-    return result
-
+    else:
+        stderr = result.stderr.decode("utf-8")
+        stdout = result.stdout.decode("utf-8")
+        print(stdout)
+        print(stderr)
 
 def apply_sam_workflow_to_stack(
     stack: str,
@@ -154,6 +153,6 @@ def apply_sam_workflow_to_stack(
     for command in deploy_commands:
         print("Deploying for ", command[-1], " ...")
         command.extend(deploy_args)
-        result = run_subprocess(
+        run_subprocess(
             command, cwd=stack, check=True, capture_output=True
         )
