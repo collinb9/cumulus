@@ -8,23 +8,15 @@ skip_pull_image=true
 [staging.package.parameters]
 profile="staging"
 s3_bucket="564188978527-artefacts-bastion"
-s3_prefix="ec2-vpc-staging"
+s3_prefix="ec2-vpn-staging"
 
 [staging.deploy.parameters]
 profile="staging"
-stack_name="ec2-vpc-staging"
+stack_name="ec2-vpn-staging"
 region="eu-west-1"
 s3_bucket="564188978527-artefacts-bastion"
-s3_prefix="ec2-vpc-staging"
-parameter_overrides=["Environment=staging"]
-
-[staging-us-east-1.deploy.parameters]
-profile="staging"
-stack_name="ec2-vpc-staging"
-region="us-east-1"
-s3_bucket="564188978527-artefacts-bastion"
-s3_prefix="ec2-vpc-staging"
-parameter_overrides=["Environment=staging"]
+s3_prefix="ec2-vpn-staging"
+parameter_overrides=["Environment=staging", "ServerCertificateId=ebe5c981-0b03-4791-889b-9536b763a50f"]
 
 [prod.build.parameters]
 profile="prod"
@@ -34,12 +26,12 @@ skip_pull_image=true
 [prod.package.parameters]
 profile="prod"
 s3_bucket="564188978527-artefacts-bastion"
-s3_prefix="ec2-vpc-prod"
+s3_prefix="ec2-vpn-prod"
 
 [prod.deploy.parameters]
 profile="prod"
-stack_name="ec2-vpc-prod"
+stack_name="ec2-vpn-prod"
 region="eu-west-1"
 s3_bucket="564188978527-artefacts-bastion"
-s3_prefix="ec2-vpc-prod"
+s3_prefix="ec2-vpn-prod"
 parameter_overrides=["Environment=prod"]
