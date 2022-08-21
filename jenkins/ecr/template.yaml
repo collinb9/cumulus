@@ -1,0 +1,37 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Public ECR repository for jenkins container
+
+Resources:
+
+  MlflowECRRepository:
+    Type: AWS::ECR::PublicRepository
+    Properties:
+      RepositoryName: jenkins
+      RepositoryPolicyText: |
+        {
+          "Version": "2008-10-17",
+          "Statement": [
+            {
+              "Sid": "AllowCrossAccountPushPull",
+              "Effect": "Allow",
+              "Principal": {
+                "AWS":
+                  [
+                    "626964907981",
+                    "564188978527",
+                    "875094265107"
+                  ]
+              },
+              "Action": [
+                "ecr-public:BatchCheckLayerAvailability",
+                "ecr-public:BatchGetImage",
+                "ecr-public:CompleteLayerUpload",
+                "ecr-public:GetDownloadUrlForLayer",
+                "ecr-public:InitiateLayerUpload",
+                "ecr-public:PutImage",
+                "ecr-public:UploadLayerPart"
+              ]
+            }
+          ]
+        }
