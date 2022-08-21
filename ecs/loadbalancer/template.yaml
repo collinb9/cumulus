@@ -1,0 +1,70 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: A stack for deploying containerized applications onto a cluster of EC2
+             hosts using Elastic Container Service.
+
+Parameters:
+
+  Environment:
+    Description: The account where the resources are being created
+    Type: String
+    Default: staging
+    AllowedValues:
+      - staging
+      - prod
+
+  Enable:
+    Type: String
+    Description: Enable resources
+    Default: false
+
+Conditions:
+
+  Enabled: !Equals
+    - !Ref Enable
+    - true
+
+Resources:
+
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub "load-balancer-sg-${Environment}"
+      GroupDescription: Security group for Mlflow elastic loadbalancer
+      VpcId:
+        Fn::ImportValue: !Sub ec2-vpc-${Environment}:VPC
+      SecurityGroupIngress:
+        - IpProtocol: -1
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Condition: Enabled
+    Properties:
+      Name: !Sub "load-balancer-${Environment}"
+      Scheme: internet-facing
+      Type: application
+      Subnets:
+        - Fn::ImportValue: !Sub ec2-vpc-${Environment}:PublicSubnet1
+        - Fn::ImportValue: !Sub ec2-vpc-${Environment}:PublicSubnet2
+      SecurityGroups:
+        - Fn::ImportValue: !Sub ec2-vpc-${Environment}:HomeSecurityGroup
+        - !Ref LoadBalancerSecurityGroup
+
+
+Outputs:
+
+  LoadBalancer:
+    Description: Load balancer
+    Condition: Enabled
+    Value: !Ref LoadBalancer
+    Export:
+      Name: !Sub ${AWS::StackName}:LoadBalancer
+
+  LoadBalancerSecurityGroup:
+    Description: The sg for the load balancer
+    Value: !Ref LoadBalancerSecurityGroup
+    Export:
+      Name: !Sub ${AWS::StackName}:LoadBalancerSecurityGroup
+

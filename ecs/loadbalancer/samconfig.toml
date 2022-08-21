@@ -8,20 +8,17 @@ skip_pull_image=true
 [staging.package.parameters]
 profile="staging"
 s3_bucket="564188978527-artefacts-bastion"
-s3_prefix="mlflow-staging"
+s3_prefix="ecs-loadbalancer-staging"
 
 [staging.deploy.parameters]
 profile="staging"
-stack_name="mlflow-staging"
+stack_name="ecs-loadbalancer-staging"
 region="eu-west-1"
 s3_bucket="564188978527-artefacts-bastion"
-s3_prefix="mlflow-staging"
+s3_prefix="ecs-loadbalancer-staging"
 capabilities=["CAPABILITY_NAMED_IAM"]
 parameter_overrides=[
     "Environment=staging",
-    "MlflowImageUrl=public.ecr.aws/e5d2j4d8/mlflow:latest",
-    "MlflowContainerCpu=512",
-    "MlflowContainerMemory=1024",
     "Enable=false"
 ]
 
@@ -33,13 +30,13 @@ skip_pull_image=true
 [prod.package.parameters]
 profile="prod"
 s3_bucket="564188978527-artefacts-bastion"
-s3_prefix="mlflow-prod"
+s3_prefix="ecs-loadbalancer-prod"
 
 [prod.deploy.parameters]
 profile="prod"
-stack_name="mlflow-prod"
+stack_name="ecs-loadbalancer-prod"
 region="eu-west-1"
 s3_bucket="564188978527-artefacts-bastion"
-s3_prefix="mlflow-prod"
+s3_prefix="ecs-loadbalancer-prod"
 capabilities=["CAPABILITY_NAMED_IAM"]
-parameter_overrides=["Environment=prod", "MlflowImageUrl=public.ecr.aws/e5d2j4d8/mlflow:latest"]
+parameter_overrides=["Environment=prod"]

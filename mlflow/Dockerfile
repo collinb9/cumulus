@@ -9,6 +9,7 @@ ENV BACKEND_STORE_URI=
 ENV DEFAULT_ARTIFACT_ROOT=
 
 EXPOSE 5000
+EXPOSE 80
 
 CMD mlflow server \
     --backend-store-uri ${BACKEND_STORE_URI} \
