@@ -16,7 +16,11 @@ stack_name="ec2-vpn-staging"
 region="eu-west-1"
 s3_bucket="564188978527-artefacts-bastion"
 s3_prefix="ec2-vpn-staging"
-parameter_overrides=["Environment=staging", "ServerCertificateId=ebe5c981-0b03-4791-889b-9536b763a50f"]
+parameter_overrides=[
+    "Environment=staging",
+    "Enable=false",
+    "ServerCertificateId=ebe5c981-0b03-4791-889b-9536b763a50f"
+]
 
 [prod.build.parameters]
 profile="prod"
@@ -34,4 +38,8 @@ stack_name="ec2-vpn-prod"
 region="eu-west-1"
 s3_bucket="564188978527-artefacts-bastion"
 s3_prefix="ec2-vpn-prod"
-parameter_overrides=["Environment=prod"]
+parameter_overrides=[
+    "Environment=staging",
+    "Enable=false",
+    "ServerCertificateId="
+]
