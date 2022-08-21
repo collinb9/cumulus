@@ -27,6 +27,17 @@ Parameters:
     Description: Client VPN server certificate
     Type: String
 
+  Enable:
+    Description: Enable VPN
+    Type: String
+    Default: false
+
+Conditions:
+
+  Enabled: !Equals
+    - !Ref Enable
+    - true
+
 Resources:
 
   VPNLogGroup:
@@ -93,6 +104,7 @@ Resources:
 
   ClientVPNTargetNetworkAssociation:
     Type: AWS::EC2::ClientVpnTargetNetworkAssociation
+    Condition: Enabled
     Properties:
       ClientVpnEndpointId: !Ref ClientVPNEndpoint
       SubnetId:
@@ -101,6 +113,7 @@ Resources:
 
   ClientVpnAuthorizationRule:
     Type: AWS::EC2::ClientVpnAuthorizationRule
+    Condition: Enabled
     Properties:
       AuthorizeAllGroups: true
       ClientVpnEndpointId: !Ref ClientVPNEndpoint
@@ -109,6 +122,7 @@ Resources:
 
   ClientVPNRouteToInternetAuthorizationRule:
     Type: AWS::EC2::ClientVpnAuthorizationRule
+    Condition: Enabled
     DependsOn: ClientVPNTargetNetworkAssociation
     Properties:
       Description: !Sub Authorize ${AWS::Region}-${Environment} client VPN to use the internet
@@ -118,6 +132,7 @@ Resources:
 
   ClientVPNRoute:
     Type: AWS::EC2::ClientVpnRoute
+    Condition: Enabled
     DependsOn: ClientVPNTargetNetworkAssociation
     Properties:
       ClientVpnEndpointId: !Ref ClientVPNEndpoint
