@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Resources for fantasy related resources
+
+Parameters:
+
+  Environment:
+    Description: The account where the resources are being created
+    Type: String
+    Default: staging
+    AllowedValues:
+      - staging
+      - prod
+
+  Application:
+    Type: String
+    Description: Name of the application
+    Default: fantasy
+
+Resources:
+
+  FantasyBucket:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ../s3/base/templatev2.yaml
+      Parameters:
+        Environment:
+          Ref: Environment
+        BucketName: !Ref Application
+        Application: !Ref Application
+
+
+Outputs:
+
+  FantasyBucketArn:
+    Value:
+      Fn::GetAtt:
+        - FantasyBucket
+        - Outputs.BucketArn
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}:FantasyBucketArn
+
+
