@@ -8,14 +8,14 @@ skip_pull_image=true
 [staging.package.parameters]
 profile="staging"
 s3_bucket="564188978527-artefacts-bastion"
-s3_prefix="lake-staging"
+s3_prefix="fantasy-staging"
 
 [staging.deploy.parameters]
 profile="staging"
-stack_name="lake-staging"
+stack_name="fantasy-staging"
 region="eu-west-1"
 s3_bucket="564188978527-artefacts-bastion"
-s3_prefix="lake-staging"
+s3_prefix="fantasy-staging"
 capabilities=["CAPABILITY_NAMED_IAM"]
 parameter_overrides=["Environment=staging"]
 
@@ -27,13 +27,13 @@ skip_pull_image=true
 [prod.package.parameters]
 profile="prod"
 s3_bucket="564188978527-artefacts-bastion"
-s3_prefix="lake-prod"
+s3_prefix="fantasy-prod"
 
 [prod.deploy.parameters]
 profile="prod"
-stack_name="lake-prod"
+stack_name="fantasy-prod"
 region="eu-west-1"
 s3_bucket="564188978527-artefacts-bastion"
-s3_prefix="lake-prod"
+s3_prefix="fantasy-prod"
 capabilities=["CAPABILITY_NAMED_IAM"]
 parameter_overrides=["Environment=prod"]
