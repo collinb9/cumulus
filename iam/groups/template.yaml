@@ -80,7 +80,7 @@ Resources:
   Administrators:
     Type: AWS::IAM::Group
     Properties:
-      GroupName: Developers
+      GroupName: Administrators
       Path: /
       Policies:
         - PolicyName: AssumeDeveloperRoles
