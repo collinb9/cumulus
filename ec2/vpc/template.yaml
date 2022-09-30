@@ -371,4 +371,3 @@ Outputs:
     Value: !Ref NoIngressSecurityGroup
     Export:
       Name: !Sub ${AWS::StackName}:NoIngressSecurityGroup
-
