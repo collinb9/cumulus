@@ -1,0 +1,359 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >-
+  Deploy Jenkins as an ECS service, along with all its required resources.
+
+Parameters:
+
+  Environment:
+    Description: The account where the resources are being created
+    Type: String
+    Default: staging
+    AllowedValues:
+      - staging
+      - prod
+
+  JenkinsImageUrl:
+    Type: String
+    Description: The url of the Jenkins docker image to deploy.
+
+  DBStorage:
+    Type: Number
+    Description: Storage to assign DB instance
+    Default: 5
+
+  Enable:
+    Type: String
+    Description: Enable resources
+    Default: false
+
+  JenkinsContainerCpu:
+    Type: Number
+    Default: 128
+    Description: How much CPU to give the container. 1024 is 1 CPU.
+
+  JenkinsContainerMemory:
+    Type: Number
+    Default: 512
+    Description: How much memory in megabytes to give the container.
+
+  JenkinsContainerPort:
+    Type: Number
+    Default: 8080
+    Description: Port on which the docker container is listening for connections
+
+Conditions:
+
+  Enabled: !Equals
+    - !Ref Enable
+    - true
+
+Resources:
+
+
+###############################################################################
+# \/                        Postgres database                              \/ #
+###############################################################################
+
+  # JenkinsDBSubnetGroup:
+  #   Type: AWS::RDS::DBSubnetGroup
+  #   Properties:
+  #     DBSubnetGroupDescription: !Ref AWS::StackName
+  #     DBSubnetGroupName: !Sub jenkins-${Environment}
+  #     SubnetIds:
+  #       - Fn::ImportValue: !Sub ec2-vpc-${Environment}:PublicSubnet1
+  #       - Fn::ImportValue: !Sub ec2-vpc-${Environment}:PublicSubnet2
+
+  # JenkinsDBAccessSecurityGroup:
+  #   Type: AWS::EC2::SecurityGroup
+  #   Properties:
+  #     GroupName: !Sub jenkins-db-access-${Environment}
+  #     GroupDescription: Security group for jenkins access
+  #     VpcId:
+  #       Fn::ImportValue:
+  #         !Sub ec2-vpc-${Environment}:VPC
+
+  # JenkinsDBSecurityGroup:
+  #   Type: AWS::EC2::SecurityGroup
+  #   Properties:
+  #     GroupName: !Sub jenkins-db-${Environment}
+  #     GroupDescription: Security group for jenkins database
+  #     VpcId:
+  #       Fn::ImportValue:
+  #         !Sub ec2-vpc-${Environment}:VPC
+  #     SecurityGroupIngress:
+  #       - IpProtocol: tcp
+  #         FromPort: 5432
+  #         ToPort: 5432
+  #         SourceSecurityGroupId: !Ref JenkinsDBAccessSecurityGroup
+  #     SecurityGroupIngress:
+  #       - IpProtocol: tcp
+  #         FromPort: 5432
+  #         ToPort: 5432
+  #         SourceSecurityGroupId: !Ref JenkinsSecurityGroup
+  #     SecurityGroupEgress:
+  #       - IpProtocol: -1
+  #         CidrIp: 0.0.0.0/0
+
+  # JenkinsDBSecret:
+  #   Type: AWS::SecretsManager::Secret
+  #   Properties:
+  #     Description: Admin password for jenkins db instance
+  #     GenerateSecretString:
+  #       ExcludePunctuation: true
+  #       PasswordLength: 16
+  #       SecretStringTemplate: '{"username":"admin"}'
+  #       GenerateStringKey: password
+  #     Name: !Sub jenkins-secret-${Environment}
+
+  # JenkinsDBInstance:
+  #   Type: AWS::RDS::DBInstance
+  #   DeletionPolicy: Snapshot # default
+  #   UpdateReplacePolicy: Snapshot
+  #   Properties:
+  #     AllocatedStorage: !Ref DBStorage
+  #     AllowMajorVersionUpgrade: false
+  #     AutoMinorVersionUpgrade: true
+  #     BackupRetentionPeriod: 14
+  #     CopyTagsToSnapshot: true
+  #     DBInstanceClass: db.t4g.micro
+  #     DBInstanceIdentifier: !Sub jenkins-db-${Environment}
+  #     DBSnapshotIdentifier: ""
+  #     DBSubnetGroupName: !Ref JenkinsDBSubnetGroup
+  #     EnableIAMDatabaseAuthentication: true
+  #     Engine: postgres
+  #     EngineVersion: 14.2
+  #     MasterUsername: master
+  #     MasterUserPassword: !Join
+  #       - ':'
+  #       - - '{{resolve:secretsmanager'
+  #         - !Ref JenkinsDBSecret
+  #         - 'SecretString:password}}'
+  #     MultiAZ: false
+  #     Port: 5432
+  #     PreferredBackupWindow: 01:00-02:59
+  #     PreferredMaintenanceWindow: Mon:03:00-Mon:05:00
+  #     PubliclyAccessible: true
+  #     StorageType: standard
+  #     VPCSecurityGroups:
+  #       - !Ref JenkinsDBSecurityGroup
+  #       - Fn::ImportValue: !Sub ec2-vpc-${Environment}:HomeSecurityGroup
+  #     Tags:
+  #       - Key: application
+  #         Value: !Sub jenkins-${Environment}
+  #       - Key: application-type
+  #         Value: ecs-service
+
+  # JenkinsUserDBSecret:
+  #   Type: AWS::SecretsManager::Secret
+  #   Properties:
+  #     Description: Admin password for jenkins_flow user in jenkins db instance
+  #     GenerateSecretString:
+  #       ExcludePunctuation: true
+  #       PasswordLength: 16
+  #       SecretStringTemplate: '{"username":"jenkins_user"}'
+  #       GenerateStringKey: password
+  #     Name: !Sub jenkins-user-secret-${Environment}
+
+################################################################################
+## \/              Jenkins S3 bucket & access role configuration             \/ #
+################################################################################
+
+  JenkinsBucket:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ../s3/base/template.yaml
+      Parameters:
+        Environment: !Ref Environment
+        BucketName: jenkins
+        Versioning: Suspended
+
+  JenkinsRole:
+    Type: AWS::IAM::Role
+    DependsOn:
+     - JenkinsBucket
+    Properties:
+     RoleName : !Sub jenkins-role-${Environment}
+     AssumeRolePolicyDocument:
+       Version: 2012-10-17
+       Statement:
+         - Effect: Allow
+           Principal:
+             Service:
+               - ecs-tasks.amazonaws.com
+               # - build.apprunner.amazonaws.com
+           Action:
+             - sts:AssumeRole
+     ManagedPolicyArns:
+       - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+               # - arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess
+     Path: /
+     Policies:
+       - PolicyName: ecs
+         PolicyDocument:
+           Statement:
+             - Effect: Allow
+               Action:
+                 - cloudwatch:DescribeAlarmsForMetric
+                 - cloudwatch:ListMetrics
+                 - cloudwatch:GetMetricStatistics
+                 - cloudwatch:GetMetricData
+                 - ec2:DescribeTags
+                 - ec2:DescribeInstances
+                 - ec2:DescribeRegions
+                 - tag:GetResources
+               Resource: "*"
+       - PolicyName: jenkins-bucket
+         PolicyDocument:
+           Statement:
+             - Effect: Allow
+               Action:
+                 - s3:*
+               Resource:
+                 - !GetAtt JenkinsBucket.Outputs.BucketArn
+                 - Fn::Join:
+                   - "/"
+                   - - !GetAtt JenkinsBucket.Outputs.BucketArn
+                     - "*"
+
+
+###############################################################################
+# /\              Jenkins S3 bucket & access role configuration             /\ #
+#                                                                             #
+# \/                 Jenkins load-balancer configuration                    \/ #
+###############################################################################
+
+  JenkinsSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub jenkins-sg-${Environment}
+      GroupDescription: Security group for Jenkins elastic loadbalancer
+      VpcId:
+        Fn::ImportValue: !Sub ec2-vpc-${Environment}:VPC
+      SecurityGroupIngress:
+        - IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          SourceSecurityGroupId:
+            Fn::ImportValue:
+              !Sub ecs-loadbalancer-${Environment}:LoadBalancerSecurityGroup
+
+  JenkinsTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Condition: Enabled
+    Properties:
+      Name: !Sub jenkins-targetgroup-${Environment}
+      HealthCheckIntervalSeconds: 30
+      HealthCheckPath: /
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 15
+      HealthyThresholdCount: 5
+      Port: 80
+      Protocol: HTTP
+      UnhealthyThresholdCount: 2
+      TargetType: ip
+      VpcId:
+        Fn::ImportValue:
+          !Sub ec2-vpc-${Environment}:VPC
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: 30
+
+  # JenkinsListener:
+  #   Type: AWS::ElasticLoadBalancingV2::Listener
+  #   Condition: Enabled
+  #   DependsOn:
+  #     - JenkinsTargetGroup
+  #   Properties:
+  #     DefaultActions:
+  #       - TargetGroupArn: !Ref JenkinsTargetGroup
+  #         Type: forward
+  #     LoadBalancerArn:
+  #       Fn::ImportValue:
+  #         !Sub ecs-loadbalancer-${Environment}:LoadBalancer
+  #     Port: 80
+  #     Protocol: HTTP
+
+  JenkinsListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Condition: Enabled
+    DependsOn:
+      - JenkinsTargetGroup
+    Properties:
+      Actions:
+        - TargetGroupArn: !Ref JenkinsTargetGroup
+          Type: forward
+      Conditions:
+        - Field: path-pattern
+          PathPatternConfig:
+            Values:
+              - /jenkins
+      ListenerArn: # !Ref JenkinsListener
+        Fn::ImportValue:
+          !Sub ecs-loadbalancer-${Environment}:LoadBalancerListener
+      Priority: 1
+
+###############################################################################
+# /\                 Jenkins load-balancer configuration                    /\ #
+#                                                                             #
+# \/                  Jenkins ECS service configuration                     \/ #
+###############################################################################
+
+  JenkinsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/ecs/jenkins-${Environment}
+      RetentionInDays: 90
+
+  JenkinsTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    DependsOn:
+      - JenkinsLogGroup
+    Properties:
+      Cpu: 512
+      Family: !Sub jenkins-${Environment}
+      RequiresCompatibilities:
+        - FARGATE
+      Memory: 1024
+      TaskRoleArn: !GetAtt JenkinsRole.Arn
+      ExecutionRoleArn: !GetAtt JenkinsRole.Arn
+      NetworkMode: awsvpc
+      ContainerDefinitions:
+        - Name: !Sub jenkins-${Environment}
+          Cpu: 1
+          Image: !Ref JenkinsImageUrl
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref JenkinsLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: jenkins
+          PortMappings:
+            - ContainerPort: !Ref JenkinsContainerPort
+
+  JenkinsService:
+    Type: AWS::ECS::Service
+    Condition: Enabled
+    Properties:
+      ServiceName: !Sub jenkins-ecs-service-${Environment}
+      Cluster:
+        Fn::ImportValue: !Sub ecs-cluster-${Environment}:ECSCluster
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 75
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets:
+            - Fn::ImportValue: !Sub ec2-vpc-${Environment}:PublicSubnet1
+            - Fn::ImportValue: !Sub ec2-vpc-${Environment}:PublicSubnet2
+          SecurityGroups:
+            - !Ref JenkinsSecurityGroup
+      DesiredCount: 1
+      TaskDefinition: !Ref JenkinsTaskDefinition
+      LaunchType: FARGATE
+      LoadBalancers:
+        - ContainerName: !Sub jenkins-${Environment}
+          ContainerPort:  !Ref JenkinsContainerPort
+          TargetGroupArn: !Ref JenkinsTargetGroup
+
