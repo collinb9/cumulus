@@ -36,7 +36,7 @@ Resources:
         - IpProtocol: -1
           FromPort: 80
           ToPort: 80
-          CidrIp: 0.0.0.0/0
+          CidrIp: 0.0.0.0/0 # Public for now
 
   LoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
@@ -82,9 +82,7 @@ Resources:
       DefaultActions:
         - TargetGroupArn: !Ref TargetGroup
           Type: forward
-      LoadBalancerArn:
-        Fn::ImportValue:
-          !Sub ecs-loadbalancer-${Environment}:LoadBalancer
+      LoadBalancerArn: !Ref LoadBalancer
       Port: 80
       Protocol: HTTP
 
@@ -97,6 +95,20 @@ Outputs:
     Export:
       Name: !Sub ${AWS::StackName}:LoadBalancer
 
+  LoadBalancerDNSName:
+    Description: Load balancer DNS Name
+    Condition: Enabled
+    Value: !GetAtt LoadBalancer.DNSName
+    Export:
+      Name: !Sub ${AWS::StackName}:LoadBalancerDNSName
+
+  LoadBalancerDefaultTargetGroup:
+    Description: The default target group for the listener on the load balancer
+    Condition: Enabled
+    Value: !Ref TargetGroup
+    Export:
+      Name: !Sub ${AWS::StackName}:TargetGroup
+
   LoadBalancerSecurityGroup:
     Description: The sg for the load balancer
     Value: !Ref LoadBalancerSecurityGroup
@@ -105,6 +117,7 @@ Outputs:
 
   LoadBalancerListener:
     Description: The listener for the load balancer
+    Condition: Enabled
     Value: !Ref LoadBalancerListener
     Export:
       Name: !Sub ${AWS::StackName}:LoadBalancerListener
