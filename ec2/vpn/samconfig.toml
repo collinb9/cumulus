@@ -41,5 +41,5 @@ s3_prefix="ec2-vpn-prod"
 parameter_overrides=[
     "Environment=staging",
     "Enable=false",
-    "ServerCertificateId="
+    "ServerCertificateId=84b144ea-6e22-4cc9-a3cd-6d685e1c592e"
 ]
