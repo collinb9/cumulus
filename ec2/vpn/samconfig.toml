@@ -22,6 +22,18 @@ parameter_overrides=[
     "ServerCertificateId=ebe5c981-0b03-4791-889b-9536b763a50f"
 ]
 
+[staging-us-east-1.deploy.parameters]
+profile="staging"
+stack_name="ec2-vpn-staging"
+region="us-east-1"
+s3_bucket="564188978527-artefacts-bastion"
+s3_prefix="ec2-vpn-staging"
+parameter_overrides=[
+    "Environment=staging",
+    "Enable=False",
+    "ServerCertificateId=afb55d4f-c9ec-4dae-9705-3062df94fcdb"
+]
+
 [prod.build.parameters]
 profile="prod"
 use_container=true
