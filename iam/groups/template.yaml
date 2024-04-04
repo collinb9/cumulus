@@ -33,6 +33,7 @@ Resources:
                   - iam:List*
                   - iam:Get*
                   - iam:CreateAccessKey
+                  - iam:UpdateAccessKey
                 Resource: "*"
 
   Developers:
