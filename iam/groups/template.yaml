@@ -30,6 +30,9 @@ Resources:
                   - iam:CreateAccessKey
                   - iam:CreateVirtualMFADevice
                   - iam:EnableMFADevice
+                  - iam:List*
+                  - iam:Get*
+                  - iam:CreateAccessKey
                 Resource: "*"
 
   Developers:
