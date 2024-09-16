@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+curl -X GET http://127.0.0.1:80 \
+    -H "Host: 127.0.0.1:80" \
+    -H "Connection: close" \
+    -H "User-Agent: ELB-HealthChecker/2.0" \
+    -H "Accept-Encoding: gzip, compressed" \
