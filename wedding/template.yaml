@@ -1,0 +1,113 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Resources for fantasy related resources
+
+Parameters:
+  Environment:
+    Description: The account where the resources are being created
+    Type: String
+    Default: staging
+    AllowedValues:
+      - staging
+      - prod
+
+  KeyPair:
+    Description: Key to for ec2-user ssh login
+    Type: AWS::EC2::KeyPair::KeyName
+
+  InstanceType:
+    Description: InstanceType to use for Tour Server
+    Type: String
+
+  LatestAmiId:
+    Type: "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>"
+
+  VolumeSize:
+    Type: Number
+    Description: Size in GB of the EBS volume to attach to the instance
+    Default: 50
+
+  HostName:
+    Type: String
+    Description: Name of the EC2 instance
+    Default: wedding-site
+
+Resources:
+  WeddingSiteInstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+      Path: "/"
+      Roles:
+        - !Ref WeddingSiteInstanceRole
+
+  WeddingSiteInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+
+  WeddingSiteSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub wedding-site-security-group-${Environment}
+      GroupDescription: !Sub Security group associated with ${Environment} wedding site EC2 instance
+      VpcId:
+        Fn::ImportValue: !Sub ec2-vpc-${Environment}:VPC
+      SecurityGroupIngress:
+        - IpProtocol: icmp
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 188.120.84.82/32 # Apartment
+      Tags:
+        - Key: application
+          Value: !Sub wedding-site-${Environment}
+
+  WeddingSiteHost:
+    Type: AWS::EC2::Instance
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      ImageId: !Ref LatestAmiId
+      IamInstanceProfile: !Ref WeddingSiteInstanceProfile
+      SecurityGroupIds:
+        - !Ref WeddingSiteSecurityGroup
+      KeyName: !Ref KeyPair
+      InstanceType: !Ref InstanceType
+      SubnetId:
+        Fn::ImportValue: !Sub ec2-vpc-${Environment}:PublicSubnet1
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: !Ref VolumeSize
+            Encrypted: true
+            VolumeType: gp3
+            DeleteOnTermination: false
+      Tags:
+        - Key: Name
+          Value:
+            Fn::Join:
+              - "-"
+              - - !Ref HostName
+                - !Ref Environment
+        - Key: application
+          Value: !Sub wedding-site-${Environment}
