@@ -1,0 +1,50 @@
+
+version=0.1
+
+[staging.build.parameters]
+profile="staging"
+use_container=true
+skip_pull_image=true
+
+[staging.package.parameters]
+profile="staging"
+s3_bucket="564188978527-artefacts-bastion"
+s3_prefix="wedding-site-staging"
+
+[staging.deploy.parameters]
+profile="staging"
+stack_name="wedding-site-staging"
+region="eu-west-1"
+s3_bucket="564188978527-artefacts-bastion"
+s3_prefix="wedding-site-staging"
+capabilities=["CAPABILITY_NAMED_IAM"]
+parameter_overrides=[
+    "Environment=staging",
+    "KeyPair=wedding-site-staging",
+    "InstanceType=t4g.small",
+    "LatestAmiId=/aws/service/canonical/ubuntu/server/26.04/stable/current/arm64/hvm/ebs-gp3/ami-id"
+]
+
+[prod.build.parameters]
+profile="prod"
+use_container=true
+skip_pull_image=true
+
+[prod.package.parameters]
+profile="prod"
+s3_bucket="564188978527-artefacts-bastion"
+s3_prefix="wedding-site-prod"
+
+[prod.deploy.parameters]
+profile="prod"
+stack_name="wedding-site-prod"
+region="eu-west-1"
+s3_bucket="564188978527-artefacts-bastion"
+s3_prefix="wedding-site-prod"
+capabilities=["CAPABILITY_NAMED_IAM"]
+parameter_overrides=[
+    "Environment=prod",
+    "KeyPair=wedding-site-prod",
+    "InstanceType=t4g.small",
+    "LatestAmiId=/aws/service/canonical/ubuntu/server/26.04/stable/current/arm64/hvm/ebs-gp3/ami-id"
+]
