@@ -39,7 +39,7 @@ region="eu-west-1"
 s3_bucket="564188978527-artefacts-bastion"
 s3_prefix="ec2-vpn-prod"
 parameter_overrides=[
-    "Environment=staging",
+    "Environment=prod",
     "Enable=false",
     "ServerCertificateId=84b144ea-6e22-4cc9-a3cd-6d685e1c592e"
 ]
