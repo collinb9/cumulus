@@ -83,11 +83,11 @@ Resources:
         - IpProtocol: tcp
           FromPort: 22
           ToPort: 22
-          CidrIp: 188.120.84.82 # Apartment
+          CidrIp: 188.120.84.82/32 # Apartment
       Tags:
         - Key: application
           Value: !Sub wedding-site-${Environment}
-  #
+
   # WeddingSiteHost:
   #   Type: AWS::EC2::Instance
   #   DeletionPolicy: Delete
