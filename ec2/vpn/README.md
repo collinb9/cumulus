@@ -24,6 +24,7 @@ $ aws --profile prod acm import-certificate \
   --certificate-chain fileb://easyrsa3/pki/ca.crt \
   --tags Key=Name,Value=VPNEndpoint
 ```
+You can now deploy the cloudformation template, and use the created certificate
 
 ## Create client certificate
 Clone the easy-rsa.git repo
