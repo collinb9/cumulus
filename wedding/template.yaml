@@ -11,32 +11,27 @@ Parameters:
       - staging
       - prod
 
-  OperatingSystem:
-    Description: OperatingSystem used for tagging purpose
-    Type: String
-    Default: Ubuntu 26.04
+  # KeyPair:
+  #   Description: Key to for ec2-user ssh login
+  #   Type: AWS::EC2::KeyPair::KeyName
 
-  KeyPair:
-    Description: Key to for ec2-user ssh login
-    Type: AWS::EC2::KeyPair::KeyName
+  # InstanceType:
+  #   Description: InstanceType to use for Tour Server
+  #   Type: String
 
-  InstanceType:
-    Description: InstanceType to use for Tour Server
-    Type: String
+  # LatestAmiId:
+  #   Type: "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>"
+  #   Default: "/aws/service/canonical/ubuntu/server/26.04/stable/current/amd64/hvm/ebs-gp2/ami-id"
 
-  LatestAmiId:
-    Type: "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>"
-    Default: "/aws/service/canonical/ubuntu/server/26.04/stable/current/amd64/hvm/ebs-gp2/ami-id"
+  # VolumeSize:
+  #   Type: Number
+  #   Description: Size in GB of the EBS volume to attach to the instance
+  #   Default: 50
 
-  VolumeSize:
-    Type: Number
-    Description: Size in GB of the EBS volume to attach to the instance
-    Default: 50
-
-  HostName:
-    Type: String
-    Description: Name of the EC2 instance
-    Default: wedding-site
+  # HostName:
+  #   Type: String
+  #   Description: Name of the EC2 instance
+  #   Default: wedding-site
 
 Resources:
   WeddingSiteInstanceProfile:
