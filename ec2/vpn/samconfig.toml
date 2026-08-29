@@ -41,5 +41,5 @@ s3_prefix="ec2-vpn-prod"
 parameter_overrides=[
     "Environment=prod",
     "Enable=false",
-    "ServerCertificateId="
+    "ServerCertificateId=null"
 ]
