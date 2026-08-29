@@ -90,7 +90,7 @@ Resources:
       ImageId: !Ref LatestAmiId
       IamInstanceProfile: !Ref WeddingSiteInstanceProfile
       SecurityGroupIds:
-        - !Ref AWS::NoValue
+        - !Ref WeddingSiteSecurityGroup
       KeyName: !Ref KeyPair
       InstanceType: !Ref InstanceType
       SubnetId:
