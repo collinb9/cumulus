@@ -72,6 +72,7 @@ Resources:
 
   ClientVPNEndpoint:
     Type: AWS::EC2::ClientVpnEndpoint
+    Condition: Enabled
     Properties:
       Description: !Sub Endpoint for ${AWS::Region}-${Environment} client VPN
       ClientCidrBlock: !Ref VpnCidrBlock
